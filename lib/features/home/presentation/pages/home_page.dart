@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
-import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
+import 'package:uni_sphere/core/widgets/loading.dart';
+import 'package:uni_sphere/features/events/presentation/bloc/event_bloc.dart';
+import 'package:uni_sphere/features/events/presentation/bloc/event_state.dart';
 import 'package:uni_sphere/features/home/utils/event_category_icon.dart';
+import 'package:uni_sphere/features/home/utils/event_date_formatter.dart';
+import 'package:uni_sphere/features/home/utils/upcoming_events_selector.dart';
 
 class HomePage extends StatelessWidget {
   final textPrimary = AppColors.primaryText;
@@ -80,216 +85,117 @@ class HomePage extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 12),
-                Card(
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: textSecondary.withValues(alpha: 0.20),
-                      width: 0.5
-                    ),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  color: colors.surface,
-                  child: InkWell(
-                    onTap: (){},
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: colors.secondary.withValues(alpha: 0.30),
-                              borderRadius: BorderRadius.circular(4),
-
-                            ),
-                            child: Icon(
-                                EventCategoryIcon.getIcon(EventCategory.academic),
-                                color: colors.primary,
-                            ),
+                BlocBuilder<EventBloc, EventState>(
+                  builder: (context,state){
+                    if(state is EventLoading){
+                      const Center(
+                        child: Loading(),
+                      );
+                    }
+                    if(state is EventError){
+                      return Center(
+                        child: Text(
+                          state.errorMsg
+                        ),
+                      );
+                    }
+                    if(state is EventLoaded){
+                      final upcomingEvents = UpcomingEventsSelector(events: state.events).getUpcomingEvents();
+                      if(upcomingEvents.isEmpty){
+                        return Center(
+                          child: Text(
+                            "No upcoming events"
                           ),
-                          SizedBox(width: 8,),
-                          Expanded(
-                              child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Campus Tech Meetup",
-                                  style: TextStyle(
-                                    color: textPrimary,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600
-                                  ),
+                        );
+                      }
+                      return ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: upcomingEvents.length,
+                          itemBuilder: (context,index)=>
+                            Card(
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                    color: textSecondary.withValues(alpha: 0.20),
+                                    width: 0.5
                                 ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "Oct 24, 10:00 AM",
-                                  style: TextStyle(
-                                    color: textSecondary,
-                                    fontSize: 15
-                                  ),
-
-                                ),
-                              SizedBox(height: 8),
-                              Text(
-                                "Main Auditorium",
-                                style: TextStyle(
-                                    color: textSecondary,
-                                )
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              ],
-                          )),
-                          Icon(
-                            Icons.chevron_right,
-                            color: textSecondary,
-                            size: 22,
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              Card(
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                      color: textSecondary.withValues(alpha: 0.20),
-                      width: 0.5
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                color: colors.surface,
-                child: InkWell(
-                  onTap: (){},
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: colors.secondary.withValues(alpha: 0.30),
-                            borderRadius: BorderRadius.circular(4),
-
-                          ),
-                          child: Icon(
-                            EventCategoryIcon.getIcon(EventCategory.religious),
-                            color: colors.primary,
-                          ),
-                        ),
-                        SizedBox(width: 8,),
-                        Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Gibi Gubae",
-                                  style: TextStyle(
-                                      color: textPrimary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600
+                              color: colors.surface,
+                              child: InkWell(
+                                onTap: (){},
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: colors.secondary.withValues(alpha: 0.30),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Icon(
+                                          EventCategoryIcon.getIcon(upcomingEvents[index].category),
+                                          color: colors.primary,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8,),
+                                      Expanded(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                upcomingEvents[index].name,
+                                                maxLines: 2,
+                                                style: TextStyle(
+                                                  overflow: TextOverflow.ellipsis,
+                                                    color: textPrimary,
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600
+                                                ),
+                                              ),
+                                              SizedBox(height: 8),
+                                              Text(
+                                                "${EventDateFormatter.dateFormatter(upcomingEvents[index].date)} · ${EventDateFormatter.startTimeFormatter(upcomingEvents[index].startTime)}",
+                                                style: TextStyle(
+                                                  color: textSecondary,
+                                                ),
+                                              ),
+                                              SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.location_on_outlined,
+                                                    color: textSecondary,
+                                                    size: 15,
+                                                  ),
+                                                  Text(
+                                                      upcomingEvents[index].location,
+                                                      style: TextStyle(
+                                                        color: textSecondary,
+                                                      )
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          )),
+                                      Icon(
+                                        Icons.chevron_right,
+                                        color: textSecondary,
+                                        size: 22,
+                                      )
+                                    ],
                                   ),
                                 ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "Oct 25, 8:00 AM",
-                                  style: TextStyle(
-                                      color: textSecondary,
-                                      fontSize: 15
-                                  ),
-
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                    "Church",
-                                    style: TextStyle(
-                                      color: textSecondary,
-                                    )
-                                ),
-                              ],
-                            )),
-                        Icon(
-                          Icons.chevron_right,
-                          color: textSecondary,
-                          size: 22,
-                        )
-                      ],
-                    ),
-                  ),
+                              ),
+                            ),
+                          );
+                    }
+                    return const SizedBox.shrink();
+                  },
                 ),
-              ),
-              Card(
-                shape: RoundedRectangleBorder(
-                  side: BorderSide(
-                      color: textSecondary.withValues(alpha: 0.20),
-                      width: 0.5
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                color: colors.surface,
-                child: InkWell(
-                  onTap: (){},
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: colors.secondary.withValues(alpha: 0.30),
-                            borderRadius: BorderRadius.circular(4),
-
-                          ),
-                          child: Icon(
-                            EventCategoryIcon.getIcon(EventCategory.career),
-                            color: colors.primary,
-                          ),
-                        ),
-                        SizedBox(width: 8,),
-                        Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Career Path Session",
-                                  style: TextStyle(
-                                      color: textPrimary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  "Oct 24, 12:00 AM",
-                                  style: TextStyle(
-                                      color: textSecondary,
-                                      fontSize: 15
-                                  ),
-
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                    "LT-47",
-                                    style: TextStyle(
-                                      color: textSecondary,
-                                    )
-                                ),
-                              ],
-                            )),
-                        Icon(
-                          Icons.chevron_right,
-                          color: textSecondary,
-                          size: 22,
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
