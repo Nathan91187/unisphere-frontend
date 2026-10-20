@@ -12,8 +12,10 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         final events = await eventRepository.getAllEvents();
         emit(EventLoaded(events: events));
       } catch (e) {
-        emit(EventError(errorMsg: e.toString()));
-      }
+      emit(EventError(
+        errorMsg: 'Unable to connect. Please try again',
+      ));
+    }
     });
   }
 }
