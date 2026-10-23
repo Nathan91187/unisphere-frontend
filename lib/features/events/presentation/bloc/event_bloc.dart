@@ -5,6 +5,7 @@ import 'package:uni_sphere/features/events/presentation/bloc/event_state.dart';
 
 class EventBloc extends Bloc<EventEvent, EventState> {
   final EventRepository eventRepository;
+  final unableToConnect = 'Unable to connect. Please try again';
   EventBloc({required this.eventRepository}): super(EventInitial()){
     on<LoadEvents>((event,emit) async {
       emit(EventLoading());
@@ -13,7 +14,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         emit(EventLoaded(events: events));
       } catch (e) {
       emit(EventError(
-        errorMsg: 'Unable to connect. Please try again',
+        errorMsg: unableToConnect,
       ));
     }
     });
