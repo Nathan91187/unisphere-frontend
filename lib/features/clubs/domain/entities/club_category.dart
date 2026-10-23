@@ -1,0 +1,16 @@
+enum ClubCategory {
+  academic,
+  technology,
+  sports,
+  arts,
+  cultural,
+  religious,
+  social,
+  political,
+  volunteering,
+  professional,
+  entrepreneurship,
+  media,
+  gaming,
+  other,
+}
