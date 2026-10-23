@@ -1,7 +1,7 @@
 import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
 
 class EventModel {
-  final int? id;
+  final int id;
   final String name;
   final String description;
   final String? imageUrl;
@@ -17,7 +17,7 @@ class EventModel {
   final int? clubId;
   final String? clubName;
    EventModel({
-    this.id,
+    required this.id,
     required this.name,
     required this.description,
     this.imageUrl,
