@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
 import 'package:uni_sphere/core/widgets/loading.dart';
+import 'package:uni_sphere/core/widgets/unableToConnect.dart';
+import 'package:uni_sphere/features/clubs/presentation/bloc/club_bloc.dart';
+import 'package:uni_sphere/features/clubs/presentation/bloc/club_event.dart';
+import 'package:uni_sphere/features/clubs/presentation/bloc/club_state.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_bloc.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_state.dart';
-import 'package:uni_sphere/features/home/utils/event_category_icon.dart';
 import 'package:uni_sphere/features/home/utils/event_date_formatter.dart';
-import 'package:uni_sphere/features/home/utils/upcoming_events_selector.dart';
+import 'package:uni_sphere/features/events/utils/upcoming_events_selector.dart';
+
+import '../../../clubs/presentation/pages/club_details_page.dart';
+import '../../../events/presentation/bloc/event_event.dart';
 
 class HomePage extends StatelessWidget {
   final textPrimary = AppColors.primaryText;
@@ -34,7 +41,7 @@ class HomePage extends StatelessWidget {
             ),
           ),
           titleSpacing: 0,
-          title: const Text('UniSphere'),
+          title: const Text('Unisphere'),
         ),
       body: SingleChildScrollView(
         child: Padding(
@@ -63,7 +70,7 @@ class HomePage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      "Upcoming events",
+                      "Upcoming Events",
                       style: TextStyle(
                           color: textPrimary,
                           fontSize: 20,
@@ -72,7 +79,9 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: (){},
+                    onPressed: (){
+                      context.go('/events');
+                    },
                     child: Text(
                       "See all",
                       style: TextStyle(
@@ -84,20 +93,16 @@ class HomePage extends StatelessWidget {
                   )
                 ],
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 10),
                 BlocBuilder<EventBloc, EventState>(
                   builder: (context,state){
                     if(state is EventLoading){
-                      const Center(
+                      return const Center(
                         child: Loading(),
                       );
                     }
                     if(state is EventError){
-                      return Center(
-                        child: Text(
-                          state.errorMsg
-                        ),
-                      );
+                      return unableToConnectWidget(state.errorMsg, ()=>context.read<EventBloc>().add(LoadEvents()));
                     }
                     if(state is EventLoaded){
                       final upcomingEvents = UpcomingEventsSelector(events: state.events).getUpcomingEvents();
@@ -123,22 +128,27 @@ class HomePage extends StatelessWidget {
                               ),
                               color: colors.surface,
                               child: InkWell(
-                                onTap: (){},
+                                onTap: (){
+                                  context.push(
+                                    '/event-details',
+                                    extra: upcomingEvents[index],
+                                  );
+                                },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     children: [
-                                      Container(
-                                        padding: EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: colors.secondary.withValues(alpha: 0.30),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Icon(
-                                          EventCategoryIcon.getIcon(upcomingEvents[index].category),
-                                          color: colors.primary,
-                                        ),
+                                      SizedBox(
+                                        width: 70,
+                                        height: 110,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(10),
+                                            child: Image.asset(
+                                              "assets/images/ronaldo_crying.png",
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
                                       ),
                                       SizedBox(width: 8,),
                                       Expanded(
@@ -146,6 +156,16 @@ class HomePage extends StatelessWidget {
                                             mainAxisAlignment: MainAxisAlignment.start,
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
+                                              Text(
+                                                upcomingEvents[index].category.name.toUpperCase(),
+                                                maxLines: 1,
+                                                style: TextStyle(
+                                                    overflow: TextOverflow.ellipsis,
+                                                    color: colors.secondary,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600
+                                                ),
+                                              ),
                                               Text(
                                                 upcomingEvents[index].name,
                                                 maxLines: 2,
@@ -167,7 +187,7 @@ class HomePage extends StatelessWidget {
                                               Row(
                                                 children: [
                                                   Icon(
-                                                    Icons.location_on_outlined,
+                                                    Icons.location_on,
                                                     color: textSecondary,
                                                     size: 15,
                                                   ),
@@ -196,6 +216,151 @@ class HomePage extends StatelessWidget {
                     return const SizedBox.shrink();
                   },
                 ),
+              SizedBox(height: 15),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "Featured Clubs",
+                      style: TextStyle(
+                          color: textPrimary,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: (){
+                      context.go('/clubs');
+                    },
+                    child: Text(
+                      "See all",
+                      style: TextStyle(
+                          color: colors.secondary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(height: 10),
+              BlocBuilder<ClubBloc, ClubState>(
+                  builder: (context,state){
+                    if(state is ClubLoading){
+                      return const Center(
+                        child: Loading(),
+                      );
+                    }
+                    if(state is ClubError){
+                      return unableToConnectWidget(state.errorMsg, ()=> context.read<ClubBloc>().add(LoadClubs()));
+                    }
+                    if(state is ClubLoaded){
+                      final clubs = state.clubs.take(3).toList();
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                          itemCount: clubs.length,
+                          itemBuilder: (context,index)=>
+                              Card(
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                      color: textSecondary.withValues(alpha: 0.20),
+                                      width: 0.5
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                color: colors.surface,
+                                child: InkWell(
+                                  onTap: (){
+                                    Navigator.push(context, MaterialPageRoute(
+                                        builder: (context)=> ClubDetailsPage(club: clubs[index])));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 70,
+                                          height: 110,
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Image.asset(
+                                                "assets/images/ronaldo_crying.png",
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                        ),
+                                        SizedBox(width: 8,),
+                                        Expanded(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  clubs[index].category.name.toUpperCase(),
+                                                  maxLines: 1,
+                                                  style: TextStyle(
+                                                      overflow: TextOverflow.ellipsis,
+                                                      color: colors.secondary,
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600
+                                                  ),
+                                                ),
+                                                Text(
+                                                  clubs[index].name,
+                                                  maxLines: 2,
+                                                  style: TextStyle(
+                                                      overflow: TextOverflow.ellipsis,
+                                                      color: textPrimary,
+                                                      fontSize: 16,
+                                                      fontWeight: FontWeight.w600
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8),
+                                                Text(
+                                                  maxLines: 2,
+                                                 overflow: TextOverflow.ellipsis,
+                                                 clubs[index].description,
+                                                  style: TextStyle(
+                                                    color: textSecondary,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.people,
+                                                      color: textSecondary,
+                                                      size: 15,
+                                                    ),
+                                                    SizedBox(width: 5,),
+                                                    Text(
+                                                        "${clubs[index].memberCount} members",
+                                                        style: TextStyle(
+                                                          color: textSecondary,
+                                                        )
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            )),
+                                        Icon(
+                                          Icons.chevron_right,
+                                          color: textSecondary,
+                                          size: 22,
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      );
+                    }
+                    return SizedBox.shrink();
+                  })
+
             ],
           ),
         ),
