@@ -16,4 +16,7 @@ class EventDateFormatter {
       ),
     );
   }
+  static String eventDetailsDateFormatter(DateTime date){
+    return DateFormat('MMMM d, yyyy').format(date);
+  }
 }
