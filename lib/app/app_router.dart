@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uni_sphere/features/auth/presentation/pages/register_form.dart';
+import 'package:uni_sphere/features/auth/presentation/pages/sign_in_form.dart';
+import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/presentation/pages/clubs_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/event_details_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/events_page.dart';
 import 'package:uni_sphere/features/home/presentation/pages/home_page.dart';
 import 'package:uni_sphere/features/profile/presentation/pages/profile_page.dart';
 
+import '../features/clubs/presentation/pages/club_details_page.dart';
 import '../features/events/domain/entities/event.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final appRouter = GoRouter(
@@ -79,12 +83,29 @@ final appRouter = GoRouter(
     ),
     GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: "/event-details",
+        path: '/event-details',
         builder: (context,state){
           final event = state.extra as Event;
           return EventDetailsPage(event: event);
         }
-
+    ),
+    GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/club-details',
+        builder: (context,state){
+          final club = state.extra as Club;
+          return ClubDetailsPage(club: club);
+        }
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+        path: '/sign-in' ,
+        builder: (context,state)=> SignInForm()
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+        path: '/register' ,
+        builder: (context,state)=> RegisterForm()
     )
 
   ],
