@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_category.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_bloc.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_event.dart';
@@ -8,7 +9,7 @@ import 'package:uni_sphere/features/clubs/presentation/pages/club_details_page.d
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading.dart';
-import '../../../../core/widgets/unableToConnect.dart';
+import '../../../../core/widgets/unable_to_connect.dart';
 import '../../domain/entities/club.dart';
 
 class ClubsPage extends StatefulWidget {
@@ -171,9 +172,11 @@ class _ClubsPageState extends State<ClubsPage> {
                                   color: colors.surface,
                                   child: InkWell(
                                     onTap: (){
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (context)=> ClubDetailsPage(club: clubs[index])));
-                                    },
+                                      context.push(
+                                        "/club-details",
+                                        extra: clubs[index]
+                                      );
+                                       },
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                                       child: Column(
