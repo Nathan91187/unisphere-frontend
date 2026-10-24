@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
 import 'package:uni_sphere/core/widgets/loading.dart';
-import 'package:uni_sphere/core/widgets/unableToConnect.dart';
+import 'package:uni_sphere/core/widgets/unable_to_connect.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_bloc.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_event.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_state.dart';
@@ -41,7 +41,14 @@ class HomePage extends StatelessWidget {
             ),
           ),
           titleSpacing: 0,
-          title: const Text('Unisphere'),
+          title: Text(
+              'Unisphere',
+              style: TextStyle(
+                fontSize: 20,
+                color: colors.primary,
+                fontWeight: FontWeight.w500
+              ),
+          ),
         ),
       body: SingleChildScrollView(
         child: Padding(
@@ -273,8 +280,10 @@ class HomePage extends StatelessWidget {
                                 color: colors.surface,
                                 child: InkWell(
                                   onTap: (){
-                                    Navigator.push(context, MaterialPageRoute(
-                                        builder: (context)=> ClubDetailsPage(club: clubs[index])));
+                                   context.push(
+                                     '/club-details',
+                                     extra: clubs[index]
+                                   );
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
