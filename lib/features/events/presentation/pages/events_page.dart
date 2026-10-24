@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
 import 'package:uni_sphere/core/widgets/loading.dart';
-import 'package:uni_sphere/core/widgets/unableToConnect.dart';
+import 'package:uni_sphere/core/widgets/unable_to_connect.dart';
 import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_bloc.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_event.dart';
