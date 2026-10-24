@@ -7,9 +7,11 @@ abstract class AuthEvent {
 class RegisterRequested extends AuthEvent{
   final String email;
   final String password;
+  final String displayName;
   const RegisterRequested({
     required this.email,
-    required this.password
+    required this.password,
+    required this.displayName
 });
 }
 class SignInRequested extends AuthEvent{
