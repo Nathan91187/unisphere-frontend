@@ -1,3 +1,4 @@
+import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_category.dart';
 
 class ClubModel {
@@ -23,5 +24,15 @@ class ClubModel {
         imageUrl: json['imageUrl'],
         memberCount: json['memberCount'],
         category: ClubCategory.values.byName(json['category'].toString().toLowerCase()));
+  }
+  Club toEntity(){
+    return Club(
+        id: id,
+        name: name,
+        description: description,
+        memberCount: memberCount,
+        category: category,
+        imageUrl: imageUrl
+    );
   }
 }
