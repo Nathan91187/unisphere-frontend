@@ -4,6 +4,7 @@ import 'package:uni_sphere/features/auth/presentation/pages/register_form.dart';
 import 'package:uni_sphere/features/auth/presentation/pages/sign_in_form.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/presentation/pages/clubs_page.dart';
+import 'package:uni_sphere/features/clubs/presentation/pages/create_club_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/event_details_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/events_page.dart';
 import 'package:uni_sphere/features/home/presentation/pages/home_page.dart';
@@ -20,29 +21,32 @@ final appRouter = GoRouter(
       builder: (context, state, navigationShell) {
         return Scaffold(
           body: navigationShell,
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: (index) {
-              navigationShell.goBranch(index);
-            },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                label: 'Home',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.event_outlined),
-                label: 'Events',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.group_outlined),
-                label: 'Clubs',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                label: 'Profile',
-              ),
-            ],
+          bottomNavigationBar: SizedBox(
+            height: 110,
+            child: NavigationBar(
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: (index) {
+                navigationShell.goBranch(index);
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.event_outlined),
+                  label: 'Events',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.group_outlined),
+                  label: 'Clubs',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline),
+                  label: 'Profile',
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -106,7 +110,14 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
         path: '/register' ,
         builder: (context,state)=> RegisterForm()
-    )
+    ),
+    GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/create-club',
+        builder: (context,state){
+          return CreateClubPage();
+        }
+    ),
 
   ],
 );
