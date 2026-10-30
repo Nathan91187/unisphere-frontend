@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
+import 'package:uni_sphere/core/widgets/loading.dart';
 import 'package:uni_sphere/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:uni_sphere/features/auth/presentation/bloc/auth_event.dart';
 import 'package:uni_sphere/features/auth/presentation/bloc/auth_state.dart';
@@ -39,12 +40,16 @@ class _SignInFormState extends State<SignInForm> {
                 SnackBar(content: Text(state.errorMsg)),
               );
             }
+            if(state is Authenticated){
+              context.pop();
+            }
+
           },
 
             builder: (context,state){
               final isLoading = state is AuthLoading;
-              if(state is Authenticated){
-                context.pop();
+              if(isLoading){
+                return Loading();
               }
               return SingleChildScrollView(
               child: Padding(
@@ -308,7 +313,7 @@ class _SignInFormState extends State<SignInForm> {
                                   )
                               )
                           ),
-                          onPressed: isLoading ? null :  () {},
+                          onPressed: () {},
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
