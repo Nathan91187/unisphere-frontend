@@ -113,9 +113,12 @@ final appRouter = GoRouter(
     ),
     GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
-        path: '/create-club',
+        path: '/club-form',
         builder: (context,state){
-          return CreateClubPage();
+          final club = state.extra as Club?;
+          return CreateClubPage(
+            club: club,
+          );
         }
     ),
 
