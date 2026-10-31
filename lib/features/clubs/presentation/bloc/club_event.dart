@@ -40,3 +40,8 @@ class DeleteClub extends ClubEvent{
   final int clubId;
   const DeleteClub({required this.clubId});
 }
+class GetMyMembership extends ClubEvent {
+  final int clubId;
+
+  const GetMyMembership({required this.clubId});
+}
