@@ -5,7 +5,6 @@ import 'package:uni_sphere/features/clubs/domain/entities/club_category.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_bloc.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_event.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_state.dart';
-import 'package:uni_sphere/features/clubs/presentation/pages/club_details_page.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/loading.dart';
@@ -135,7 +134,15 @@ class _ClubsPageState extends State<ClubsPage> {
                 ),
               ),
               SizedBox(height: 10),
-              BlocBuilder<ClubBloc, ClubState>(
+              BlocConsumer<ClubBloc, ClubState>(
+                listener: (context,state){
+                  if (state is ClubOperationSuccess ) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(state.message)),
+                    );
+                    context.read<ClubBloc>().add(LoadClubs());
+                  }
+                },
                 builder: (context, state) {
                   if (state is ClubLoading) {
                     return Center(child: Loading());
@@ -166,8 +173,19 @@ class _ClubsPageState extends State<ClubsPage> {
                         ),
                         color: colors.surface,
                         child: InkWell(
-                          onTap: () {
-                            context.push("/club-details", extra: clubs[index]);
+                          onTap: () async {
+                            final clubBloc = context.read<ClubBloc>();
+
+                            await context.push(
+                              '/club-details',
+                              extra: clubs[index],
+                            );
+                            // Capture the ClubBloc before navigation because ClubsPage may be disposed
+                            // while ClubDetailsPage is open. This lets us refresh the clubs afterward
+                            // without relying on the original BuildContext.
+                            if (!clubBloc.isClosed) {
+                              clubBloc.add(const LoadClubs());
+                            }
                           },
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -291,7 +309,7 @@ class _ClubsPageState extends State<ClubsPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async{
-          final createdClub = await context.push<Club>('/create-club');
+          final createdClub = await context.push<Club>('/club-form');
           // This line runs after CreateClubPage closes
           // If a Club was returned, creation succeeded
           // If the user simply went back, then createdClub will be null
