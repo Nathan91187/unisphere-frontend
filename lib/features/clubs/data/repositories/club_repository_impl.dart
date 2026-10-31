@@ -1,8 +1,10 @@
 import 'package:uni_sphere/features/clubs/data/datasources/club_remote_data_source.dart';
+import 'package:uni_sphere/features/clubs/data/models/club_membership_model.dart';
 import 'package:uni_sphere/features/clubs/data/models/create_club_request.dart';
 import 'package:uni_sphere/features/clubs/data/models/update_club_request.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_category.dart';
+import 'package:uni_sphere/features/clubs/domain/entities/club_membership.dart';
 import 'package:uni_sphere/features/clubs/domain/repositories/club_repository.dart';
 
 class ClubRepositoryImpl implements ClubRepository{
@@ -57,5 +59,27 @@ class ClubRepositoryImpl implements ClubRepository{
    );
    final club = await remoteDataSource.updateClub(clubId, request);
    return club.toEntity();
+  }
+
+  @override
+  Future<ClubMembership> getMyMembership({required int clubId}) async{
+    final membership = await remoteDataSource.getMyMembership(clubId);
+    return membership.toEntity();
+  }
+
+  @override
+  Future<void> leaveClub({required int clubId}) async{
+    await remoteDataSource.leaveClub(clubId);
+  }
+
+  @override
+  Future<ClubMembership> joinClub({required int clubId})async{
+    final membership = await remoteDataSource.joinClub(clubId);
+    return membership.toEntity();
+  }
+
+  @override
+  Future<bool> checkLeaveEligibility({required int clubId}) async{
+    return await remoteDataSource.checkLeaveEligibility(clubId);
   }
 }
