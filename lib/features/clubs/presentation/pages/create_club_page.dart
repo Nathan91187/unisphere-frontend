@@ -1,14 +1,21 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
+import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_category.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_bloc.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_event.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_state.dart';
 
 class CreateClubPage extends StatefulWidget {
-  const CreateClubPage({super.key});
+  final Club? club;
+
+  const CreateClubPage({
+    super.key,
+    this.club,
+  });
 
   @override
   State<CreateClubPage> createState() => _CreateClubPageState();
@@ -23,6 +30,16 @@ class _CreateClubPageState extends State<CreateClubPage> {
   ClubCategory? selectedCategory;
 
   @override
+  void initState() {
+    super.initState();
+
+    nameController.text = widget.club?.name ?? '';
+    descriptionController.text = widget.club?.description ?? '';
+    imageUrlController.text = widget.club?.imageUrl ?? '';
+    selectedCategory = widget.club?.category;
+  }
+
+  @override
   void dispose() {
     nameController.dispose();
     descriptionController.dispose();
@@ -32,15 +49,17 @@ class _CreateClubPageState extends State<CreateClubPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.club != null;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.primaryText,
         elevation: 0,
-        title: const Text(
-          'Create Club',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          isEditing ? 'Edit Club' : 'Create Club',
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       body: SafeArea(
@@ -56,9 +75,9 @@ class _CreateClubPageState extends State<CreateClubPage> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text(state.message)));
-              // Close CreateClubPage and return the Club received from the backend.
-              // This value completes the Future being awaited in ClubsPage
-              context.pop(state.club); //return the club back
+
+              // Close the form and return the saved Club to the previous page.
+              context.pop(state.club);
             }
           },
           builder: (context, state) {
@@ -71,18 +90,22 @@ class _CreateClubPageState extends State<CreateClubPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Build your community',
-                      style: TextStyle(
+                    Text(
+                      isEditing
+                          ? 'Update your community'
+                          : 'Build your community',
+                      style: const TextStyle(
                         color: AppColors.primaryText,
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Create a club and bring students together around a shared interest.',
-                      style: TextStyle(
+                    Text(
+                      isEditing
+                          ? 'Update your club information and keep your community details current.'
+                          : 'Create a club and bring students together around a shared interest.',
+                      style: const TextStyle(
                         color: AppColors.secondaryText,
                         fontSize: 14,
                         height: 1.5,
@@ -147,10 +170,10 @@ class _CreateClubPageState extends State<CreateClubPage> {
                       onChanged: isLoading
                           ? null
                           : (value) {
-                              setState(() {
-                                selectedCategory = value;
-                              });
-                            },
+                        setState(() {
+                          selectedCategory = value;
+                        });
+                      },
                       validator: (value) {
                         if (value == null) {
                           return 'Please select a category';
@@ -187,21 +210,37 @@ class _CreateClubPageState extends State<CreateClubPage> {
                         onPressed: isLoading
                             ? null
                             : () {
-                                if (_formKey.currentState!.validate()) {
-                                  context.read<ClubBloc>().add(
-                                    CreateClub(
-                                      name: nameController.text.trim(),
-                                      description: descriptionController.text
-                                          .trim(),
-                                      imageUrl:
-                                          imageUrlController.text.trim().isEmpty
-                                          ? null
-                                          : imageUrlController.text.trim(),
-                                      category: selectedCategory!,
-                                    ),
-                                  );
-                                }
-                              },
+                          if (_formKey.currentState!.validate()) {
+                            if (isEditing) {
+                              context.read<ClubBloc>().add(
+                                UpdateClub(
+                                  clubId: widget.club!.id,
+                                  name: nameController.text.trim(),
+                                  description: descriptionController.text
+                                      .trim(),
+                                  imageUrl:
+                                  imageUrlController.text.trim().isEmpty
+                                      ? null
+                                      : imageUrlController.text.trim(),
+                                  category: selectedCategory!,
+                                ),
+                              );
+                            } else {
+                              context.read<ClubBloc>().add(
+                                CreateClub(
+                                  name: nameController.text.trim(),
+                                  description: descriptionController.text
+                                      .trim(),
+                                  imageUrl:
+                                  imageUrlController.text.trim().isEmpty
+                                      ? null
+                                      : imageUrlController.text.trim(),
+                                  category: selectedCategory!,
+                                ),
+                              );
+                            }
+                          }
+                        },
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.surface,
@@ -211,16 +250,18 @@ class _CreateClubPageState extends State<CreateClubPage> {
                         ),
                         icon: isLoading
                             ? const SizedBox(
-                                height: 18,
-                                width: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.surface,
-                                ),
-                              )
-                            : const Icon(Icons.add),
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.surface,
+                          ),
+                        )
+                            : Icon(isEditing ? Icons.save_outlined : Icons.add),
                         label: Text(
-                          isLoading ? 'Creating...' : 'Create Club',
+                          isLoading
+                              ? (isEditing ? 'Saving...' : 'Creating...')
+                              : (isEditing ? 'Save Changes' : 'Create Club'),
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
