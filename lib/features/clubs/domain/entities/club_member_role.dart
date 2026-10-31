@@ -1,0 +1,4 @@
+enum ClubMemberRole {
+  member,
+  organizer
+}
