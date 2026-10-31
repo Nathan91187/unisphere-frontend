@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart';
+import 'package:uni_sphere/features/clubs/data/models/club_membership_model.dart';
 import 'package:uni_sphere/features/clubs/data/models/club_model.dart';
 import 'package:uni_sphere/features/clubs/data/models/create_club_request.dart';
 import 'package:uni_sphere/features/clubs/data/models/update_club_request.dart';
@@ -86,4 +87,74 @@ class ClubRemoteDataSource {
       throw Exception(errorResponse['message']);
     }
   }
-}
+  Future<ClubMembershipModel> getMyMembership(int clubId) async{
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    if(token == null){
+      throw Exception('User is not authenticated');
+    }
+    final response = await get(
+      Uri.parse("$uri/$clubId/memberships/me"),
+      headers: {
+        'Authorization' : 'Bearer $token'
+      }
+    ).timeout(const Duration(seconds: 15));
+    if(response.statusCode != 200){
+      final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+      throw Exception(errorResponse['message']);
+    }
+    final Map<String,dynamic> body = jsonDecode(response.body);
+    return ClubMembershipModel.fromJson(body);
+  }
+  Future<void> leaveClub(int clubId) async{
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    if(token == null){
+      throw Exception('User is not authenticated');
+    }
+    final response = await delete(
+      Uri.parse("$uri/$clubId/memberships"),
+      headers: {
+        'Authorization' : 'Bearer $token'
+      }
+    ).timeout(const Duration(seconds: 15));
+    if(response.statusCode != 204){
+      final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+      throw Exception(errorResponse['message']);
+    }
+  }
+    Future<ClubMembershipModel> joinClub(int clubId) async {
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+      if (token == null) {
+        throw Exception('User is not authenticated');
+      }
+      final response = await post(
+          Uri.parse("$uri/$clubId/memberships"),
+          headers: {
+            'Authorization': 'Bearer $token'
+          }
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode != 201) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+      final body = jsonDecode(response.body);
+      return ClubMembershipModel.fromJson(body);
+    }
+    Future<bool> checkLeaveEligibility(int clubId) async{
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+      if (token == null) {
+        throw Exception('User is not authenticated');
+      }
+      final response = await get(
+        Uri.parse('$uri/$clubId/memberships/leave-check'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+      return jsonDecode(response.body) as bool;
+    }
+  }
