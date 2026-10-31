@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:uni_sphere/features/events/data/models/event_model.dart';
 
 class EventRemoteDataSource {
-  String uri = "http://myIp.7:8080/events";
+  String uri = "http://192.168.100.7:8080/events";
  Future<List<EventModel>> getAllEvents() async{
     try {
       final response = await get(

@@ -9,6 +9,7 @@ import 'package:uni_sphere/features/clubs/data/datasources/club_remote_data_sour
 import 'package:uni_sphere/features/clubs/data/repositories/club_repository_impl.dart';
 import 'package:uni_sphere/features/clubs/domain/repositories/club_repository.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_bloc.dart';
+import 'package:uni_sphere/features/clubs/presentation/bloc/club_membership_bloc.dart';
 import 'package:uni_sphere/features/events/data/datasources/event_remote_data_source.dart';
 import 'package:uni_sphere/features/events/data/repositories/event_repository_impl.dart';
 import 'package:uni_sphere/features/events/domain/repositories/event_repository.dart';
@@ -44,10 +45,12 @@ Future<void> main() async{
           ),
           BlocProvider<ClubBloc>(create: (context)=> ClubBloc(
               clubRepository: clubRepository)..add(LoadClubs())),
+          BlocProvider(create: (context)=> ClubMembershipBloc(
+              clubRepository: clubRepository)),
           BlocProvider(create: (context)=> AuthBloc(
               repository: authRepository)),
           BlocProvider(create: (context)=> ProfileBloc(
-              profileRepository: profileRepository))
+              profileRepository: profileRepository)),
         ],
       child: const UnisphereApp(),
       ));
