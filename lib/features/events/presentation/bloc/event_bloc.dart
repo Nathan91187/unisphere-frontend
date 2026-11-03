@@ -18,5 +18,62 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       ));
     }
     });
+    on<CreateEvent>((event,emit)async{
+      emit(EventLoading());
+      try{
+        final createdEvent = await eventRepository.createEvent(
+            name: event.name,
+            description: event.description,
+            category: event.category,
+            date: event.date,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            capacity: event.capacity,
+            location: event.location);
+        emit(EventOperationSuccess(
+            event: createdEvent,
+            message: 'Event created successfully'));
+      }
+      catch(e){
+        emit(
+          EventError(errorMsg: unableToConnect)
+        );
+      }
+    });
+    on<UpdateEvent> ((event,emit)async{
+      emit(EventLoading());
+      try{
+        final updatedEvent = await eventRepository.updateEvent(
+            eventId: event.eventId,
+            name: event.name,
+            description: event.description,
+            category: event.category,
+            date: event.date,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            capacity: event.capacity,
+            location: event.location);
+        emit(EventOperationSuccess(
+            event: updatedEvent,
+            message: 'Event updated successfully'));
+      }
+      catch(e){
+        emit(
+            EventError(errorMsg: unableToConnect)
+        );
+      }
+    });
+    on<DeleteEvent> ((event,emit)async{
+      try{
+        await eventRepository.deleteEvent(eventId: event.eventId);
+        emit(EventOperationSuccess(
+            message: 'Event deleted successfully')
+        );
+      }
+      catch(e){
+        emit(EventError(errorMsg: unableToConnect));
+      }
+    });
   }
+
 }
