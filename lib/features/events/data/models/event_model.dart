@@ -1,5 +1,7 @@
 import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
 
+import '../../domain/entities/event.dart';
+
 class EventModel {
   final int id;
   final String name;
@@ -51,5 +53,20 @@ class EventModel {
         clubId: json['clubId'],
         clubName: json['clubName']
     );
+    }
+    Event toEntity(){
+    return Event(
+        id: id,
+        name: name,
+        description: description,
+        category: category,
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+        capacity: capacity,
+        attendeeCount: attendeeCount,
+        location: location,
+        organizerUid: organizerUid,
+        organizerName: organizerName);
     }
 }
