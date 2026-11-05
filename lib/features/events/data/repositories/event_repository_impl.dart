@@ -1,9 +1,12 @@
 import 'package:uni_sphere/features/events/data/datasources/event_remote_data_source.dart';
 import 'package:uni_sphere/features/events/data/models/create_event_request.dart';
 import 'package:uni_sphere/features/events/data/models/event_model.dart';
+import 'package:uni_sphere/features/events/data/models/rsvp_model.dart';
 import 'package:uni_sphere/features/events/data/models/update_event_request.dart';
 import 'package:uni_sphere/features/events/domain/entities/event.dart';
 import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
+import 'package:uni_sphere/features/events/domain/entities/rsvp.dart';
+import 'package:uni_sphere/features/events/domain/entities/rsvp_status.dart';
 import 'package:uni_sphere/features/events/domain/repositories/event_repository.dart';
 
 class EventRepositoryImpl implements EventRepository{
@@ -71,6 +74,37 @@ class EventRepositoryImpl implements EventRepository{
         location: location);
     final eventModel = await dataSource.updateEvent(request,eventId);
     return eventModel.toEntity();
+  }
+
+  @override
+  Future<Rsvp> createRsvp({
+    required RsvpStatus status,
+    required int eventId}) async{
+    final rsvp = await dataSource.createRsvp(eventId, status);
+    return rsvp.toEntity();
+  }
+
+  @override
+  Future<void> deleteRsvp({required int eventId}) async{
+    await dataSource.deleteRsvp(eventId);
+  }
+
+  @override
+  Future<Rsvp?> getMyRsvp({required int eventId}) async{
+    final rsvp = await dataSource.getMyRsvp(eventId);
+    return rsvp?.toEntity();
+  }
+
+  @override
+  Future<List<Rsvp>> getRsvpsByEventId({required int eventId}) async{
+    final rsvps = await dataSource.getRsvpsByEventId(eventId);
+    return rsvps.map((rsvp)=>rsvp.toEntity()).toList();
+  }
+
+  @override
+  Future<Rsvp> updateRsvp({required RsvpStatus status, required int eventId}) async{
+    final rsvp = await dataSource.updateRsvp(eventId, status);
+    return rsvp.toEntity();
   }
 
 }
