@@ -14,7 +14,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         emit(EventLoaded(events: events));
       } catch (e) {
       emit(EventError(
-        errorMsg: unableToConnect,
+        errorMsg: e.toString(),
       ));
     }
     });
@@ -25,6 +25,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
             name: event.name,
             description: event.description,
             category: event.category,
+            imageUrl: event.imageUrl,
             date: event.date,
             startTime: event.startTime,
             endTime: event.endTime,
@@ -36,7 +37,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       }
       catch(e){
         emit(
-          EventError(errorMsg: unableToConnect)
+          EventError(errorMsg: e.toString())
         );
       }
     });
@@ -46,6 +47,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         final updatedEvent = await eventRepository.updateEvent(
             eventId: event.eventId,
             name: event.name,
+            imageUrl: event.imageUrl,
             description: event.description,
             category: event.category,
             date: event.date,
@@ -59,19 +61,20 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       }
       catch(e){
         emit(
-            EventError(errorMsg: unableToConnect)
+            EventError(errorMsg: e.toString())
         );
       }
     });
     on<DeleteEvent> ((event,emit)async{
       try{
+        emit(EventLoading());
         await eventRepository.deleteEvent(eventId: event.eventId);
         emit(EventOperationSuccess(
             message: 'Event deleted successfully')
         );
       }
       catch(e){
-        emit(EventError(errorMsg: unableToConnect));
+        emit(EventError(errorMsg: e.toString()));
       }
     });
   }
