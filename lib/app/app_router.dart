@@ -5,6 +5,7 @@ import 'package:uni_sphere/features/auth/presentation/pages/sign_in_form.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/presentation/pages/clubs_page.dart';
 import 'package:uni_sphere/features/clubs/presentation/pages/create_club_page.dart';
+import 'package:uni_sphere/features/events/presentation/pages/create_event_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/event_details_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/events_page.dart';
 import 'package:uni_sphere/features/home/presentation/pages/home_page.dart';
@@ -121,6 +122,13 @@ final appRouter = GoRouter(
           );
         }
     ),
-
+    GoRoute(
+      parentNavigatorKey: _rootNavigatorKey,
+        path: '/event-form',
+        builder: (context,state){
+          final event = state.extra as Event?;
+          return CreateEventPage(event: event);
+        }
+    )
   ],
 );
