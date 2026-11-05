@@ -136,7 +136,15 @@ class _EventsPageState extends State<EventsPage> {
                         ),
                       ),
                       SizedBox(height: 10),
-                  BlocBuilder<EventBloc,EventState>(
+                  BlocConsumer<EventBloc,EventState>(
+                    listener: (context,state){
+                      if (state is EventOperationSuccess ) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(state.message)),
+                        );
+                        context.read<EventBloc>().add(LoadEvents());
+                      }
+                    },
                     builder: (context,state){
                       if(state is EventLoading){
                         return Center(
@@ -276,7 +284,29 @@ class _EventsPageState extends State<EventsPage> {
                     ],
                   ),
         )
-      )
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async{
+          final createdEvent = await context.push<Event>('/event-form');
+          // This line runs after CreateEventPage closes
+          // If an Event was returned, creation succeeded
+          // If the user simply went back, then createdEvent will be null
+          if (createdEvent != null && context.mounted) {
+            // Reload the events from the backend so the Events page
+            // displays the newly created Events
+            context.read<EventBloc>().add(const LoadEvents());
+            await context.push('/event-details', extra: createdEvent);
+          }
+        },
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.surface,
+        elevation: 3,
+        icon: const Icon(Icons.add),
+        label: const Text(
+          'Create Event',
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+      ),
       );
   }
 }
