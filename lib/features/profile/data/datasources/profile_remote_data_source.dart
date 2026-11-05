@@ -8,7 +8,7 @@ import 'package:uni_sphere/features/profile/data/models/profile_response_model.d
 import 'package:uni_sphere/features/profile/data/models/update_profile_request.dart';
 
 class ProfileRemoteDataSource {
-  final String uri = "http://10.73.207.223:8080/users";
+  final String uri = "http://localhost:8080/users";
   final String unableToConnect =  "Unable to connect to the server";
   Future<ProfileResponseModel> getProfileByUid(String uid)async{
     try{
