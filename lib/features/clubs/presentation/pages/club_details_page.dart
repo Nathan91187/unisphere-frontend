@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uni_sphere/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:uni_sphere/features/auth/presentation/bloc/auth_state.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_member_role.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_event.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_membership_bloc.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_membership_event.dart' as club_membership_event;
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_membership_state.dart';
+import 'package:uni_sphere/features/events/presentation/bloc/event_bloc.dart';
+import 'package:uni_sphere/features/events/presentation/bloc/event_event.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/loading.dart';
+import '../../../../core/widgets/unable_to_connect.dart';
+import '../../../events/domain/entities/event.dart';
+import '../../../events/presentation/bloc/event_state.dart';
+import '../../../events/utils/upcoming_events_selector.dart';
+import '../../../home/utils/event_date_formatter.dart';
 import '../bloc/club_bloc.dart';
 import '../bloc/club_state.dart';
 class ClubDetailsPage extends StatefulWidget {
@@ -141,7 +151,6 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              debugPrint('Details back button pressed');
               context.pop();
             },
           ),
@@ -168,8 +177,30 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                           context.read<ClubBloc>().add(DeleteClub(clubId: club.id));
                         }
                       }
+                      else if(value == 'create-event'){
+                        final createdEvent = await context.push<Event>(
+                            '/event-form', extra: {'clubId' : club.id},);
+                        if(createdEvent != null && context.mounted){
+                          context.read<EventBloc>().add(const LoadEvents());
+                          context.push('/event-details', extra: {
+                            'event' : createdEvent
+                          });
+                        }
+                      }
                     },
                     itemBuilder: (context) => [
+                      const PopupMenuItem<String>(
+                        value: 'create-event',
+                        child: Row(
+                          children: [
+                            Icon(Icons.add),
+                            SizedBox(width: 10),
+                            Text(
+                              'Create Event',
+                            ),
+                          ],
+                        ),
+                      ),
                       const PopupMenuItem<String>(
                         value: 'edit',
                         child: Row(
@@ -346,6 +377,11 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                             foregroundColor: Colors.white,
                           ),
                           onPressed: () async {
+                            final authState = context.read<AuthBloc>().state;
+                            if(authState is !Authenticated && context.mounted){
+                              await context.push('/sign-in');
+                              return;
+                            }
                             if (isMember || isOrganizer) {
                               if (isSoleOrganizer) {
                                 final confirmed = await showLeaveClubDialog(
@@ -418,6 +454,129 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                             fontWeight: FontWeight.w500,
                             fontSize: 20
                         ),
+                      ),
+                      SizedBox(height: 10,),
+                      BlocBuilder<EventBloc, EventState>(
+                        builder: (context,state){
+                          if(state is EventLoading){
+                            return const Center(
+                              child: Loading(),
+                            );
+                          }
+                          if(state is EventError){
+                            return unableToConnectWidget(state.errorMsg, ()=>context.read<EventBloc>().add(LoadEvents()));
+                          }
+                          if(state is EventLoaded){
+                            final upcomingEvents = UpcomingEventsSelector(events: state.events).getUpcomingEventsByClub(widget.club.id);
+                            if(upcomingEvents.isEmpty){
+                              return Center(
+                                child: Text(
+                                    "No upcoming events"
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: upcomingEvents.length,
+                              itemBuilder: (context,index)=>
+                                  Card(
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                          color: textSecondary.withValues(alpha: 0.20),
+                                          width: 0.5
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    color: colors.surface,
+                                    child: InkWell(
+                                      onTap: (){
+                                        context.push(
+                                          '/event-details',
+                                          extra: upcomingEvents[index],
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: 70,
+                                              height: 110,
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(10),
+                                                child: Image.asset(
+                                                  "assets/images/ronaldo_crying.png",
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(width: 8,),
+                                            Expanded(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.start,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      upcomingEvents[index].category.name.toUpperCase(),
+                                                      maxLines: 1,
+                                                      style: TextStyle(
+                                                          overflow: TextOverflow.ellipsis,
+                                                          color: colors.secondary,
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w600
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      upcomingEvents[index].name,
+                                                      maxLines: 2,
+                                                      style: TextStyle(
+                                                          overflow: TextOverflow.ellipsis,
+                                                          color: textPrimary,
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.w600
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 8),
+                                                    Text(
+                                                      "${EventDateFormatter.dateFormatter(upcomingEvents[index].date)} · ${EventDateFormatter.startTimeFormatter(upcomingEvents[index].startTime)}",
+                                                      style: TextStyle(
+                                                        color: textSecondary,
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 8),
+                                                    Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.location_on,
+                                                          color: textSecondary,
+                                                          size: 15,
+                                                        ),
+                                                        Text(
+                                                            upcomingEvents[index].location,
+                                                            style: TextStyle(
+                                                              color: textSecondary,
+                                                            )
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                )),
+                                            Icon(
+                                              Icons.chevron_right,
+                                              color: textSecondary,
+                                              size: 22,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
                       ),
                     ],
                   ),
