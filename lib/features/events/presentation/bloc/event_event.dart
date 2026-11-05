@@ -1,9 +1,11 @@
 import '../../domain/entities/event_category.dart';
 
-abstract class EventEvent {}
+abstract class EventEvent {
+  const EventEvent();
+}
 
 class LoadEvents extends EventEvent{
-
+  const LoadEvents();
 }
 class CreateEvent extends EventEvent{
   final String name;
@@ -40,7 +42,6 @@ class UpdateEvent extends EventEvent{
   final String endTime;
   final int capacity;
   final String location;
-  final int? clubId;
   UpdateEvent({
     required this.eventId,
     required this.name,
@@ -52,7 +53,6 @@ class UpdateEvent extends EventEvent{
     required this.endTime,
     required this.capacity,
     required this.location,
-    this.clubId,
   });
 }
 class DeleteEvent extends EventEvent{
