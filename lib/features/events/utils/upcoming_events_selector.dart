@@ -29,4 +29,12 @@ class UpcomingEventsSelector {
         int.parse(timeParts[1])
     );
   }
+  List<Event> getUpcomingEventsByClub(int clubId) {
+    final clubEvents = events
+        .where((event) => event.clubId == clubId)
+        .toList();
+
+    return UpcomingEventsSelector(events: clubEvents)
+        .getAllUpcomingEvents();
+  }
 }
