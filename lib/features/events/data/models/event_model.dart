@@ -67,6 +67,9 @@ class EventModel {
         attendeeCount: attendeeCount,
         location: location,
         organizerUid: organizerUid,
-        organizerName: organizerName);
+        organizerName: organizerName,
+        clubId: clubId,
+        clubName: clubName
+    );
     }
 }
