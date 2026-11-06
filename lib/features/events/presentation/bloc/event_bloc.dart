@@ -7,6 +7,16 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   final EventRepository eventRepository;
   final unableToConnect = 'Unable to connect. Please try again';
   EventBloc({required this.eventRepository}): super(EventInitial()){
+    on<LoadEventById>((event,emit)async{
+      emit(EventLoading());
+      try{
+        final loadedEvent = await eventRepository.getEventById(eventId: event.eventId);
+        emit(EventLoadedById(event: loadedEvent));
+      }
+      catch(e){
+        emit(EventError(errorMsg: e.toString()));
+      }
+    });
     on<LoadEvents>((event,emit) async {
       emit(EventLoading());
       try {
@@ -30,7 +40,9 @@ class EventBloc extends Bloc<EventEvent, EventState> {
             startTime: event.startTime,
             endTime: event.endTime,
             capacity: event.capacity,
-            location: event.location);
+            location: event.location,
+            clubId: event.clubId,
+        );
         emit(EventOperationSuccess(
             event: createdEvent,
             message: 'Event created successfully'));
