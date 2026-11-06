@@ -46,244 +46,257 @@ class _EventsPageState extends State<EventsPage> {
       appBar: AppBar(
         title: Text("Events"),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      Form(
-                          child: TextFormField(
-                            controller: searchController,
-                            onChanged: (value){
-                              setState(() {
-                              });
-                            },
-                            decoration: InputDecoration(
-                              hintText: "Search events",
-                              fillColor: colors.surface,
-                              filled: true,
-                              prefixIcon: Icon(
-                                  Icons.search,
-                                  color: primary.withValues(alpha: .8),
-                              ),
-                              suffixIcon: searchController.text.isNotEmpty
-                                  ? IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  searchController.clear();
-                                  setState(() {});
-                                },
-                              )
-                                  : null,
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.all(Radius.circular(10)),
-                                borderSide: BorderSide(
-                                  width: 2,
-                                  color: primary
+      body: RefreshIndicator(
+        onRefresh: ()async{
+          context.read<EventBloc>().add(LoadEvents());
+        },
+        child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      children: [
+                        Form(
+                            child: TextFormField(
+                              controller: searchController,
+                              onChanged: (value){
+                                setState(() {
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: "Search events",
+                                fillColor: colors.surface,
+                                filled: true,
+                                prefixIcon: Icon(
+                                    Icons.search,
+                                    color: primary.withValues(alpha: .8),
+                                ),
+                                suffixIcon: searchController.text.isNotEmpty
+                                    ? IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    searchController.clear();
+                                    setState(() {});
+                                  },
                                 )
-                              ),
-                              enabledBorder: OutlineInputBorder(
+                                    : null,
+                                focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.all(Radius.circular(10)),
                                   borderSide: BorderSide(
-                                      width: 1,
-                                      color: textPrimary.withValues(alpha: .3)
+                                    width: 2,
+                                    color: primary
                                   )
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                    borderSide: BorderSide(
+                                        width: 1,
+                                        color: textPrimary.withValues(alpha: .3)
+                                    )
+                                ),
                               ),
-                            ),
-                          )),
-                      SizedBox(height: 10),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            ...EventCategory.values.map((value){
-                              final name = value.name;
-                              final isSelected = selectedCategory == value.name;
-                              final buttonColor = isSelected
-                                  ? primary
-                                  : colors.secondary.withValues(alpha: 0.30);
-                              final textColor = isSelected ? surface : colors.primary;
-                              return Row(
-                                children: [
-                                  TextButton(
-                                      onPressed: (){
-                                        setState(() {
-                                          if(selectedCategory == value.name){
-                                            selectedCategory = '';
-                                          }
-                                          else{
-                                            selectedCategory = value.name;
-                                          }
-                                        });
-                                      },
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: buttonColor
-                                    ),
-                                      child: Text(
-                                        name.toUpperCase(),
-                                        style: TextStyle(
-                                            color: textColor,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500
-                                        ),
+                            )),
+                        SizedBox(height: 10),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              ...EventCategory.values.map((value){
+                                final name = value.name;
+                                final isSelected = selectedCategory == value.name;
+                                final buttonColor = isSelected
+                                    ? primary
+                                    : colors.secondary.withValues(alpha: 0.30);
+                                final textColor = isSelected ? surface : colors.primary;
+                                return Row(
+                                  children: [
+                                    TextButton(
+                                        onPressed: (){
+                                          setState(() {
+                                            if(selectedCategory == value.name){
+                                              selectedCategory = '';
+                                            }
+                                            else{
+                                              selectedCategory = value.name;
+                                            }
+                                          });
+                                        },
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: buttonColor
                                       ),
-                                  ),
-                                  SizedBox(width: 5)
-                                ],
-                              );
-                            })
-                          ],
+                                        child: Text(
+                                          name.toUpperCase(),
+                                          style: TextStyle(
+                                              color: textColor,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500
+                                          ),
+                                        ),
+                                    ),
+                                    SizedBox(width: 5)
+                                  ],
+                                );
+                              })
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 10),
-                  BlocConsumer<EventBloc,EventState>(
-                    listener: (context,state){
-                      if (state is EventOperationSuccess ) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(state.message)),
-                        );
-                        context.read<EventBloc>().add(LoadEvents());
-                      }
-                    },
-                    builder: (context,state){
-                      if(state is EventLoading){
-                        return Center(
-                          child: Loading(),
-                        );
-                      }
-                      if(state is EventError){
-                        return unableToConnectWidget(state.errorMsg, ()=>context.read<EventBloc>().add(LoadEvents()));
-                      }
-                      if(state is EventLoaded){
-                        final events = UpcomingEventsSelector(events: _filterEvents(state.events)).getAllUpcomingEvents();
-                        if(events.isEmpty){
+                        SizedBox(height: 10),
+                    BlocConsumer<EventBloc,EventState>(
+                      listener: (context,state){
+                        if (state is EventOperationSuccess ) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(state.message)),
+                          );
+                          context.read<EventBloc>().add(LoadEvents());
+                        }
+                      },
+                      builder: (context,state){
+                        if(state is EventLoading){
                           return Center(
-                            child: Text(
-                                "No events"
-                            ),
+                            child: Loading(),
                           );
                         }
-
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: events.length,
-                      itemBuilder: (context,index)=>
-                          Card(
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                  color: textSecondary.withValues(alpha: 0.20),
-                                  width: 0.5
+                        if(state is EventError){
+                          return unableToConnectWidget(state.errorMsg, ()=>context.read<EventBloc>().add(LoadEvents()));
+                        }
+                        if(state is EventLoaded){
+                          final events = UpcomingEventsSelector(events: _filterEvents(state.events)).getAllUpcomingEvents();
+                          if(events.isEmpty){
+                            return Center(
+                              child: Text(
+                                  "No events"
                               ),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            color: colors.surface,
-                            child: InkWell(
-                              onTap: (){
-                                context.push(
-                                  '/event-details',
-                                  extra: events[index],
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-                                child: Column(
-                                  children: [
-                                    AspectRatio(
-                                      aspectRatio: 16 / 9,
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadiusGeometry.circular(10),
-                                        child: Image.asset(
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            height: 500,
-                                            "assets/images/ronaldo_crying.png"
+                            );
+                          }
+
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: events.length,
+                        itemBuilder: (context,index)=>
+                            Card(
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                    color: textSecondary.withValues(alpha: 0.20),
+                                    width: 0.5
+                                ),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              color: colors.surface,
+                              child: InkWell(
+                                onTap: () async {
+                                  // Capture the BLoC before navigation so we don't need to use the context
+                                  // after the async gap , when the widget may have been disposed.
+                                  // therefore we don't have to check if the context is mounted or not
+                                  // Check that the BLoC is still open before dispatching the refresh event.
+                                  final eventBloc = context.read<EventBloc>();
+
+                                  await context.push('/event-details', extra: events[index]);
+
+                                  if (!eventBloc.isClosed) {
+                                    eventBloc.add(const LoadEvents());
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                                  child: Column(
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadiusGeometry.circular(10),
+                                          child: Image.asset(
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: 500,
+                                              "assets/images/ronaldo_crying.png"
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Container(
-                                                  padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
-                                                  decoration: BoxDecoration(
-                                                      color: colors.secondary.withValues(alpha: 0.30),
-                                                      borderRadius: BorderRadius.circular(10)
-                                                  ),
-                                                  child: Text(
-                                                    events[index].category.name.toUpperCase(),
-                                                    style: TextStyle(
-                                                        color: colors.primary,
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.w500
+                                      SizedBox(height: 10),
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Expanded(
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Container(
+                                                    padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                                                    decoration: BoxDecoration(
+                                                        color: colors.secondary.withValues(alpha: 0.30),
+                                                        borderRadius: BorderRadius.circular(10)
                                                     ),
-                                                  ),
-                                                ),
-                                                SizedBox(height: 3,),
-                                                Text(
-                                                  events[index].name,
-                                                  maxLines: 2,
-                                                  style: TextStyle(
-                                                      overflow: TextOverflow.ellipsis,
-                                                      color: textPrimary,
-                                                      fontSize: 16,
-                                                      fontWeight: FontWeight.w600
-                                                  ),
-                                                ),
-                                                SizedBox(height: 8),
-                                                Text(
-                                                  "${EventDateFormatter.dateFormatter(events[index].date)} · ${EventDateFormatter.startTimeFormatter(events[index].startTime)}",
-                                                  style: TextStyle(
-                                                    color: textSecondary,
-                                                  ),
-                                                ),
-                                                SizedBox(height: 8),
-                                                Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.location_on_outlined,
-                                                      color: textSecondary,
-                                                      size: 15,
-                                                    ),
-                                                    Expanded(
-                                                      child: Text(
-                                                        overflow: TextOverflow.ellipsis,
-                                                          maxLines: 1,
-                                                          events[index].location,
-                                                          style: TextStyle(
-                                                            color: textSecondary,
-                                                          )
+                                                    child: Text(
+                                                      events[index].category.name.toUpperCase(),
+                                                      style: TextStyle(
+                                                          color: colors.primary,
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w500
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-                                              ],
-                                            )),
-                                        Icon(
-                                          Icons.chevron_right,
-                                          color: textSecondary,
-                                          size: 22,
-                                        )
-                                      ],
-                                    ),
-                                  ],
+                                                  ),
+                                                  SizedBox(height: 3,),
+                                                  Text(
+                                                    events[index].name,
+                                                    maxLines: 2,
+                                                    style: TextStyle(
+                                                        overflow: TextOverflow.ellipsis,
+                                                        color: textPrimary,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.w600
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  Text(
+                                                    "${EventDateFormatter.dateFormatter(events[index].date)} · ${EventDateFormatter.startTimeFormatter(events[index].startTime)}",
+                                                    style: TextStyle(
+                                                      color: textSecondary,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 8),
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.location_on_outlined,
+                                                        color: textSecondary,
+                                                        size: 15,
+                                                      ),
+                                                      Expanded(
+                                                        child: Text(
+                                                          overflow: TextOverflow.ellipsis,
+                                                            maxLines: 1,
+                                                            events[index].location,
+                                                            style: TextStyle(
+                                                              color: textSecondary,
+                                                            )
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              )),
+                                          Icon(
+                                            Icons.chevron_right,
+                                            color: textSecondary,
+                                            size: 22,
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                    );}
-                    return SizedBox.shrink();
-                    }
-                  )
-                    ],
-                  ),
-        )
+                      );}
+                      return SizedBox.shrink();
+                      }
+                    )
+                      ],
+                    ),
+          )
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async{
