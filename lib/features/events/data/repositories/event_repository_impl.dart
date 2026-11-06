@@ -1,7 +1,6 @@
 import 'package:uni_sphere/features/events/data/datasources/event_remote_data_source.dart';
 import 'package:uni_sphere/features/events/data/models/create_event_request.dart';
 import 'package:uni_sphere/features/events/data/models/event_model.dart';
-import 'package:uni_sphere/features/events/data/models/rsvp_model.dart';
 import 'package:uni_sphere/features/events/data/models/update_event_request.dart';
 import 'package:uni_sphere/features/events/domain/entities/event.dart';
 import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
@@ -13,8 +12,13 @@ class EventRepositoryImpl implements EventRepository{
   final EventRemoteDataSource dataSource;
    const EventRepositoryImpl({required this.dataSource});
   @override
+  Future<Event> getEventById({required int eventId}) async{
+   final event = await dataSource.getEventById(eventId);
+   return event.toEntity();
+  }
+  @override
   Future<List<Event>> getAllEvents() async{
-    List<EventModel> eventModels = await dataSource.getAllEvents();
+    final List<EventModel> eventModels = await dataSource.getAllEvents();
     return eventModels.map((eventModel)=>eventModel.toEntity()).toList();
   }
 
@@ -106,5 +110,6 @@ class EventRepositoryImpl implements EventRepository{
     final rsvp = await dataSource.updateRsvp(eventId, status);
     return rsvp.toEntity();
   }
+
 
 }
