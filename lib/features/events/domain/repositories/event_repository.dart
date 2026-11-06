@@ -4,6 +4,7 @@ import 'package:uni_sphere/features/events/domain/entities/rsvp.dart';
 import 'package:uni_sphere/features/events/domain/entities/rsvp_status.dart';
 
 abstract class EventRepository {
+  Future<Event> getEventById({required int eventId});
   Future<List<Event>> getAllEvents();
   Future<Event> createEvent({
     required String name,
