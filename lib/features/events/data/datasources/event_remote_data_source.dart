@@ -14,6 +14,25 @@ class EventRemoteDataSource {
   final String uri = "http://localhost:8080/events";
   final String unableToConnect =  "Unable to connect to the server";
   final String notAuthenticated = 'Sign in or register to proceed';
+  Future<EventModel> getEventById(int eventId)async{
+    try{
+      final response = await get(
+        Uri.parse('$uri/$eventId'),
+      ).timeout(Duration(seconds: 15));
+      if(response.statusCode != 200){
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+      final Map<String,dynamic>body = jsonDecode(response.body);
+      return EventModel.fromJson(body);
+    }
+    on  http.ClientException {
+      throw Exception(unableToConnect);
+    }
+    on TimeoutException {
+      throw Exception(unableToConnect);
+    }
+  }
  Future<List<EventModel>> getAllEvents() async{
     try {
       final response = await get(
