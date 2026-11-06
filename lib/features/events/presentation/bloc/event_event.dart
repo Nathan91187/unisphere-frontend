@@ -3,7 +3,10 @@ import '../../domain/entities/event_category.dart';
 abstract class EventEvent {
   const EventEvent();
 }
-
+class LoadEventById extends EventEvent{
+  final int eventId;
+  const LoadEventById({required this.eventId});
+}
 class LoadEvents extends EventEvent{
   const LoadEvents();
 }
