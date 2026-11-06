@@ -135,11 +135,15 @@ class HomePage extends StatelessWidget {
                               ),
                               color: colors.surface,
                               child: InkWell(
-                                onTap: (){
-                                  context.push(
+                                onTap: ()async{
+                                  final eventBloc = context.read<EventBloc>();
+                                    await context.push(
                                     '/event-details',
                                     extra: upcomingEvents[index],
                                   );
+                                  if (!eventBloc.isClosed) {
+                                    eventBloc.add(const LoadEvents());
+                                  }
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
