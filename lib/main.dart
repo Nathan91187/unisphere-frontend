@@ -15,6 +15,7 @@ import 'package:uni_sphere/features/events/data/repositories/event_repository_im
 import 'package:uni_sphere/features/events/domain/repositories/event_repository.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_bloc.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_event.dart';
+import 'package:uni_sphere/features/events/presentation/bloc/rsvp_bloc.dart';
 import 'package:uni_sphere/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:uni_sphere/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:uni_sphere/features/profile/domain/repository/profile_repository.dart';
@@ -51,6 +52,8 @@ Future<void> main() async{
               repository: authRepository)),
           BlocProvider(create: (context)=> ProfileBloc(
               profileRepository: profileRepository)),
+          BlocProvider(create: (context)=>RsvpBloc(
+              repository: eventRepository)),
         ],
       child: const UnisphereApp(),
       ));
