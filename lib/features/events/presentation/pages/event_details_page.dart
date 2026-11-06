@@ -5,10 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
 import 'package:uni_sphere/features/events/domain/entities/event.dart';
+import 'package:uni_sphere/features/events/domain/entities/rsvp_status.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_bloc.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_event.dart';
 import 'package:uni_sphere/features/events/presentation/bloc/event_state.dart';
+import 'package:uni_sphere/features/events/presentation/bloc/rsvp_bloc.dart';
+import 'package:uni_sphere/features/events/presentation/bloc/rsvp_state.dart';
 import 'package:uni_sphere/features/home/utils/event_date_formatter.dart';
+
+import '../../../../core/widgets/loading.dart';
+import '../bloc/rsvp_event.dart';
 
 class EventDetailsPage extends StatefulWidget {
   final Event event;
@@ -22,6 +28,68 @@ class EventDetailsPage extends StatefulWidget {
 }
 
 class _EventDetailsPageState extends State<EventDetailsPage> {
+  RsvpStatus selectedStatus = RsvpStatus.going;
+  Future<void> showUnregisterDialog(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.border),
+        ),
+        title: const Text(
+          'Unregister from Event?',
+          style: TextStyle(
+            color: AppColors.primaryText,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        content: const Text(
+          'Are you sure you want to cancel your registration for this event?',
+          style: TextStyle(
+            color: AppColors.secondaryText,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.border),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text('Unregister'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<RsvpBloc>().add(
+        DeleteRsvp(eventId: event.id),
+      );
+    }
+  }
   Future<bool?> showDeleteEventDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
@@ -82,9 +150,15 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
   late Event event;
   @override
-  void initState(){
+  void initState() {
     super.initState();
     event = widget.event;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && user.uid != event.organizerUid) {
+      context.read<RsvpBloc>().add(
+        LoadMyRsvp(eventId: event.id),
+      );
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -93,8 +167,13 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     final colors = Theme.of(context).colorScheme;
     return BlocListener<EventBloc,EventState>(
       listener: (context,state){
-        if(state is EventOperationSuccess && state.event == null){
-          context.pop();
+
+
+        if (state is EventLoadedById &&
+            state.event.id == widget.event.id) {
+          setState(() {
+            event = state.event;
+          });
         }
       },
       child: Scaffold(
@@ -109,7 +188,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                   if (value == 'edit') {
                     final updatedEvent = await context.push<Event>(
                       '/event-form',
-                      extra: event,
+                      extra: {'event' : event,'clubId' : event.clubId},
                     );
 
                     if (updatedEvent != null && context.mounted) {
@@ -392,17 +471,173 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                         ],
                       ),
                       SizedBox(height: 10,),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)
-                              )
-                          ),
-                          onPressed: () {},
-                          child: const Text('Register for event'),
-                        ),
+                      BlocConsumer<RsvpBloc,RsvpState>(
+                        listener: (context,state){
+                          if(state is RsvpOperationSuccess){
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(state.message))
+                            );
+                            context.read<EventBloc>().add(
+                                LoadEventById(eventId: event.id));
+                          }
+                          else if (state is RsvpError) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(state.errorMsg)),
+                            );
+                        }
+                        },
+                        builder: (context, state) {
+                          final isFull = event.attendeeCount >= event.capacity;
+                          final isOrganizer =
+                              event.organizerUid == FirebaseAuth.instance.currentUser?.uid;
+
+                          if (isOrganizer) {
+                            return const SizedBox.shrink();
+                          }
+                          if (state is RsvpLoading ) {
+                            return const Loading();
+                          }
+
+                          if (state is RsvpError) {
+                            return const Text('Unable to load registration status.');
+                          }
+
+                          final currentRsvp =
+                          state is MyRsvpLoaded ? state.rsvp : null;
+
+                          final hasRsvpd = currentRsvp != null;
+
+                          return SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: colors.primary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: !hasRsvpd && isFull
+                                  ? null:() {
+
+                                final user = FirebaseAuth.instance.currentUser;
+
+                                if (user == null) {
+                                  context.push('/sign-in');
+                                  return;}
+                                if (currentRsvp != null) {
+                                  selectedStatus = currentRsvp.status;
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (sheetContext) {
+                                      return StatefulBuilder(
+                                        builder: (context, setModalState) {
+                                          return SizedBox(
+                                            width: double.infinity,
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 25,
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    'Manage Registration',
+                                                    style: TextStyle(
+                                                      color: textPrimary,
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 18,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 15),
+                                                  Text(
+                                                    'Update your attendance status for this event',
+                                                    style: TextStyle(
+                                                      color: textSecondary,
+                                                      fontWeight: FontWeight.w400,
+                                                      fontSize: 13,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 12),
+                                                  Text(
+                                                    'Select your attendance status',
+                                                    style: TextStyle(
+                                                      color: textPrimary,
+                                                      fontWeight: FontWeight.w600,
+                                                      fontSize: 15,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  RadioGroup<RsvpStatus>(
+                                                    groupValue: selectedStatus,
+                                                    onChanged: (value) {
+                                                      setModalState(() {
+                                                        selectedStatus = value!;
+                                                      });
+                                                    },
+                                                    child: Column(
+                                                      spacing: 5,
+                                                      children: [
+                                                        RadioListTile<RsvpStatus>(
+                                                          value: RsvpStatus.going,
+                                                          title: const Text('Going'),
+                                                          subtitle: const Text('I plan to attend.'),
+                                                        ),
+                                                        RadioListTile<RsvpStatus>(
+                                                          value: RsvpStatus.maybe,
+                                                          title: const Text('Maybe'),
+                                                          subtitle: const Text("I'm still deciding."),
+                                                        ),
+                                                        RadioListTile<RsvpStatus>(
+                                                          value: RsvpStatus.not_going,
+                                                          title: const Text('Not going'),
+                                                          subtitle: const Text("I won't be attending."),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 10),
+                                                  FilledButton(
+                                                    onPressed: () {
+                                                      if (selectedStatus != currentRsvp.status) {
+                                                        context.read<RsvpBloc>().add(
+                                                          UpdateRsvp(
+                                                            status: selectedStatus,
+                                                            eventId: event.id,
+                                                          ),
+                                                        );
+                                                      }
+                                                    },
+                                                    child: const Text('Save changes'),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+
+                                } else {
+                                  context.read<RsvpBloc>().add(
+                                    CreateRsvp(
+                                      status: selectedStatus,
+                                      eventId: event.id,
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Text(
+                                hasRsvpd
+                                    ? 'Manage Registration'
+                                    : isFull
+                                      ? 'Event Full'
+                                      : 'Register for event',
+                              ),
+                            ),
+                          );
+                        },
                       )
                     ],
                   ),
