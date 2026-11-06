@@ -126,8 +126,11 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
         path: '/event-form',
         builder: (context,state){
-          final event = state.extra as Event?;
-          return CreateEventPage(event: event);
+          final extra = state.extra as Map<String,dynamic>?;
+          return CreateEventPage(
+              event: extra?['event'] as Event?,
+              clubId: extra?['clubId'] as int?,
+          );
         }
     )
   ],
