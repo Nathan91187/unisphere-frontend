@@ -182,9 +182,7 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                             '/event-form', extra: {'clubId' : club.id},);
                         if(createdEvent != null && context.mounted){
                           context.read<EventBloc>().add(const LoadEvents());
-                          context.push('/event-details', extra: {
-                            'event' : createdEvent
-                          });
+                          context.push('/event-details', extra: createdEvent);
                         }
                       }
                     },
