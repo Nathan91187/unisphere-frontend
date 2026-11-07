@@ -2,13 +2,13 @@ import 'package:uni_sphere/features/profile/domain/entities/profile_user.dart';
 
 class ProfileResponseModel {
   final String uid;
-  final String email;
+  final String username;
   final String displayName;
   final String? profileImageUrl;
 
   const ProfileResponseModel({
     required this.uid,
-    required this.email,
+    required this.username,
     required this.displayName,
     this.profileImageUrl,
   });
@@ -16,7 +16,7 @@ class ProfileResponseModel {
   factory ProfileResponseModel.fromJson(Map<String, dynamic> json) {
     return ProfileResponseModel(
       uid: json['uid'],
-      email: json['email'],
+      username: json['username'],
       displayName: json['displayName'],
       profileImageUrl: json['profileImageUrl'],
     );
@@ -24,7 +24,7 @@ class ProfileResponseModel {
   ProfileUser toEntity(){
     return ProfileUser(
         uid: uid,
-        email: email,
+        username: username,
         displayName: displayName,
         profileImageUrl: profileImageUrl
     );
