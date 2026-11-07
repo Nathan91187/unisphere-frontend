@@ -8,8 +8,12 @@ class ProfileRepositoryImpl implements ProfileRepository{
   final ProfileRemoteDataSource dataSource;
   const ProfileRepositoryImpl({required this.dataSource});
   @override
-  Future<ProfileUser> createProfile({required String displayName, String? profileImageUrl}) async{
-    final request = CreateProfileRequest(displayName: displayName,profileImageUrl: profileImageUrl);
+  Future<ProfileUser> createProfile({required String displayName, required String username,String? profileImageUrl}) async{
+    final request = CreateProfileRequest(
+        username:username,
+        displayName: displayName,
+        profileImageUrl: profileImageUrl
+    );
     final response = await dataSource.createProfile(request);
     return response.toEntity();
   }
@@ -26,10 +30,31 @@ class ProfileRepositoryImpl implements ProfileRepository{
   }
 
   @override
-  Future<ProfileUser> updateProfile({required String displayName, String? profileImageUrl}) async{
-    final request = UpdateProfileRequest(displayName: displayName,profileImageUrl: profileImageUrl);
+  Future<ProfileUser> updateProfile({required String username,required String displayName, String? profileImageUrl}) async{
+    final request = UpdateProfileRequest(
+        username: username,
+        displayName: displayName,
+        profileImageUrl: profileImageUrl
+    );
     final response = await dataSource.updateProfile(request);
     return response.toEntity();
+  }
+
+  @override
+  Future<List<ProfileUser>> getAllProfilesByUid({required List<String> uids}) async{
+    final profiles = await dataSource.getAllProfilesByUid(uids);
+    return profiles.map((profile)=>profile.toEntity()).toList();
+  }
+
+  @override
+  Future<List<ProfileUser>> searchUsersByUsername({required String username}) async{
+    final profiles = await dataSource.searchUsersByUsername(username);
+    return profiles.map((profile)=>profile.toEntity()).toList();
+  }
+
+  @override
+  Future<bool> checkUsernameAvailability({required String username}){
+   return dataSource.isUsernameAvailable(username);
   }
 
 }
