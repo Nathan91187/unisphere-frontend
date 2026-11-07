@@ -10,10 +10,41 @@ import 'package:uni_sphere/features/profile/data/models/update_profile_request.d
 class ProfileRemoteDataSource {
   final String uri = "http://localhost:8080/users";
   final String unableToConnect =  "Unable to connect to the server";
-  Future<ProfileResponseModel> getProfileByUid(String uid)async{
+  final httpClientException = 'Unable to connect. Please check your connection and try again.';
+  Future<bool> isUsernameAvailable(String username)async{
     try{
       final response = await get(
-          Uri.parse("$uri/$uid")
+        Uri.parse("$uri/availability").replace(
+          queryParameters: {
+            'username' : username.trim()
+          }
+        ),
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+      return jsonDecode(response.body) as bool;
+    }on http.ClientException catch (e) {
+      throw Exception(httpClientException);
+    }
+    on TimeoutException {
+      throw Exception(unableToConnect);
+    }
+  }
+  Future<ProfileResponseModel> getProfileByUid(String uid)async{
+    try{
+      final token = await FirebaseAuth.instance.currentUser
+          ?.getIdToken()
+          .timeout(const Duration(seconds: 15));
+      if (token == null) {
+        throw Exception('user is not authenticated');
+      }
+      final response = await get(
+          Uri.parse("$uri/$uid"),
+        headers: {
+          'Authorization' : 'Bearer $token',
+        },
       ).timeout(const Duration(seconds: 15));
       if (response.statusCode != 200) {
         final Map<String, dynamic> errorResponse = jsonDecode(response.body);
@@ -22,10 +53,72 @@ class ProfileRemoteDataSource {
       final Map<String, dynamic> body = jsonDecode(response.body);
       return ProfileResponseModel.fromJson(body);
     }on http.ClientException catch (e) {
-      throw Exception(unableToConnect);
+      throw Exception(httpClientException);
     }
     on TimeoutException {
-      throw Exception("Unable to connect to the server");
+      throw Exception(unableToConnect);
+    }
+  }
+  Future<List<ProfileResponseModel>> getAllProfilesByUid(List<String>uids)async{
+    try{
+      final token = await FirebaseAuth.instance.currentUser
+          ?.getIdToken()
+          .timeout(const Duration(seconds: 15));
+      if (token == null) {
+        throw Exception('user is not authenticated');
+    }
+      final response = await post(
+        Uri.parse('$uri/bulk'),
+        headers: {
+          'Authorization' : 'Bearer $token',
+           'Content-Type': 'application/json',
+        },
+        body: jsonEncode(uids)
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+      final List<dynamic> body = jsonDecode(response.body);
+      return body.map((profile)=>ProfileResponseModel.fromJson(profile as Map<String, dynamic>)).toList();
+    }
+    on http.ClientException catch (e) {
+      throw Exception(httpClientException);
+    }
+    on TimeoutException {
+      throw Exception(unableToConnect);
+    }
+  }
+  Future<List<ProfileResponseModel>> searchUsersByUsername(String username)async{
+    try{
+      final token = await FirebaseAuth.instance.currentUser
+          ?.getIdToken()
+          .timeout(const Duration(seconds: 15));
+      if (token == null) {
+        throw Exception('user is not authenticated');
+      }
+      final response = await get(
+          Uri.parse('$uri/search').replace(
+            queryParameters: {
+              'username' : username
+            }
+          ),
+          headers: {
+            'Authorization' : 'Bearer $token',
+          },
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+      final List<dynamic> body = jsonDecode(response.body);
+      return body.map((profile)=>ProfileResponseModel.fromJson(profile as Map<String, dynamic>)).toList();
+    }
+    on http.ClientException catch (e) {
+      throw Exception(httpClientException);
+    }
+    on TimeoutException {
+      throw Exception(unableToConnect);
     }
   }
   Future<ProfileResponseModel> createProfile(CreateProfileRequest request) async{
@@ -51,10 +144,10 @@ class ProfileRemoteDataSource {
       final Map<String, dynamic> body = jsonDecode(response.body);
       return ProfileResponseModel.fromJson(body);
     }on http.ClientException catch (e) {
-      throw Exception(unableToConnect);
+      throw Exception(httpClientException);
     }
     on TimeoutException {
-      throw Exception("Unable to connect to the server");
+      throw Exception(unableToConnect);
     }
   }
   Future<ProfileResponseModel> updateProfile(UpdateProfileRequest request) async{
@@ -80,10 +173,10 @@ class ProfileRemoteDataSource {
       final Map<String, dynamic> body = jsonDecode(response.body);
       return ProfileResponseModel.fromJson(body);
     }on http.ClientException catch (e) {
-      throw Exception(unableToConnect);
+      throw Exception(httpClientException);
     }
     on TimeoutException {
-      throw Exception("Unable to connect to the server");
+      throw Exception(unableToConnect);
     }
   }
   Future<void> deleteProfile()async{
@@ -105,10 +198,10 @@ class ProfileRemoteDataSource {
         throw Exception(errorResponse['message']);
       }
     } on http.ClientException catch (e) {
-      throw Exception(unableToConnect);
+      throw Exception(httpClientException);
     }
     on TimeoutException {
-      throw Exception("Unable to connect to the server");
+      throw Exception(unableToConnect);
     }
   }
 }
