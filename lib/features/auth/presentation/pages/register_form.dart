@@ -27,7 +27,7 @@ class _RegisterFormState extends State<RegisterForm> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-
+  final usernameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool obscureText = true;
 
@@ -37,6 +37,7 @@ class _RegisterFormState extends State<RegisterForm> {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    usernameController.dispose();
     super.dispose();
   }
 
@@ -61,6 +62,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     CreateProfile(
                       displayName: displayNameController.text.trim(),
                       profileImageUrl: state.user.profileImageUrl,
+                      username: usernameController.text.trim(),
                     ),
                   );
                 }
@@ -71,7 +73,28 @@ class _RegisterFormState extends State<RegisterForm> {
                 if (state is ProfileLoaded) {
                   context.pop();
                 }
-
+                if(state is UsernameAvailabilityChecked){
+                 if(state.isAvailable == true){
+                   final displayName =
+                   displayNameController.text.trim();
+                   final email =
+                   emailController.text.trim();
+                   final password =
+                       passwordController.text;
+                   context.read<AuthBloc>().add(
+                     RegisterRequested(
+                       displayName: displayName,
+                       email: email,
+                       password: password,
+                     ),
+                   );
+                 }
+                 else{
+                    ScaffoldMessenger.of(context).showSnackBar(
+                     SnackBar(content: Text('That username is already taken. Please choose another one.'))
+                   );
+                 }
+                }
                 if (state is ProfileError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.errorMsg)),
@@ -84,14 +107,8 @@ class _RegisterFormState extends State<RegisterForm> {
             builder: (context, authState) {
               return BlocBuilder<ProfileBloc, ProfileState>(
                 builder: (context, profileState) {
-                  final isLoading =
-                      authState is AuthLoading ||
-                          profileState is ProfileLoading;
-
-                  if (isLoading) {
-                    return Loading();
-                  }
-
+                  final isLoading = authState is AuthLoading;
+                  final isProfileLoading = profileState is ProfileLoading;
                   return SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -205,7 +222,74 @@ class _RegisterFormState extends State<RegisterForm> {
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 20),
+                            Text(
+                              "Username",
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            TextFormField(
+                              controller: usernameController,
+                              textCapitalization: TextCapitalization.none,
+                              maxLength: 20,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Please enter a username';
+                                }
 
+                                final username = value.trim();
+
+                                if (username.length < 3 || username.length > 20) {
+                                  return 'Username must be between 3 and 20 characters';
+                                }
+
+                                if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
+                                  return 'Use only letters, numbers, and underscores';
+                                }
+
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                hintText: "Enter a username",
+                                hintStyle: TextStyle(
+                                  color: textSecondary.withValues(alpha: 0.8),
+                                ),
+                                counterText: '',
+                                fillColor: colors.surface,
+                                filled: true,
+                                prefixIcon: Icon(
+                                  Icons.alternate_email,
+                                  color: colors.primary.withValues(alpha: .6),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                  borderSide: BorderSide(
+                                    width: 2,
+                                    color: colors.primary,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                  borderSide: BorderSide(
+                                    width: 1,
+                                    color: textPrimary.withValues(alpha: .3),
+                                  ),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: textPrimary.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                              ),
+                            ),
                             const SizedBox(height: 20),
                             Text(
                               "Email address",
@@ -432,24 +516,11 @@ class _RegisterFormState extends State<RegisterForm> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                onPressed: isLoading
+                                onPressed: isProfileLoading || isLoading
                                     ? null
                                     : () {
                                   if (_formKey.currentState!.validate()) {
-                                    final displayName =
-                                    displayNameController.text.trim();
-                                    final email =
-                                    emailController.text.trim();
-                                    final password =
-                                        passwordController.text;
-
-                                    context.read<AuthBloc>().add(
-                                      RegisterRequested(
-                                        displayName: displayName,
-                                        email: email,
-                                        password: password,
-                                      ),
-                                    );
+                                    context.read<ProfileBloc>().add(CheckUsernameAvailability(username: usernameController.text.trim()));
                                   }
                                 },
                                 child: const Text(
@@ -496,7 +567,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                     ),
                                   ),
                                 ),
-                                onPressed: isLoading ? null : () {},
+                                onPressed: isProfileLoading||isLoading ? null : () {},
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
