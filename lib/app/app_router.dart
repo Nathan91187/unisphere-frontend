@@ -7,6 +7,7 @@ import 'package:uni_sphere/features/clubs/presentation/pages/clubs_page.dart';
 import 'package:uni_sphere/features/clubs/presentation/pages/create_club_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/create_event_page.dart';
 import 'package:uni_sphere/features/events/presentation/pages/event_details_page.dart';
+import 'package:uni_sphere/features/events/presentation/pages/event_registrations.dart';
 import 'package:uni_sphere/features/events/presentation/pages/events_page.dart';
 import 'package:uni_sphere/features/home/presentation/pages/home_page.dart';
 import 'package:uni_sphere/features/profile/presentation/pages/profile_page.dart';
@@ -130,6 +131,16 @@ final appRouter = GoRouter(
           return CreateEventPage(
               event: extra?['event'] as Event?,
               clubId: extra?['clubId'] as int?,
+          );
+        }
+    ),
+    GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/event-registrations',
+        builder: (context,state){
+          final extra = state.extra as int;
+          return EventRegistrations(
+            eventId: extra,
           );
         }
     )
