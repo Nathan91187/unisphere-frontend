@@ -10,6 +10,8 @@ import 'package:uni_sphere/features/events/presentation/pages/event_details_page
 import 'package:uni_sphere/features/events/presentation/pages/event_registrations.dart';
 import 'package:uni_sphere/features/events/presentation/pages/events_page.dart';
 import 'package:uni_sphere/features/home/presentation/pages/home_page.dart';
+import 'package:uni_sphere/features/profile/domain/entities/profile_user.dart';
+import 'package:uni_sphere/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:uni_sphere/features/profile/presentation/pages/profile_page.dart';
 
 import '../features/clubs/presentation/pages/club_details_page.dart';
@@ -44,6 +46,10 @@ final appRouter = GoRouter(
                   label: 'Clubs',
                 ),
                 NavigationDestination(
+                  icon: Icon(Icons.explore_outlined),
+                  label: 'Discover',
+                ),
+                NavigationDestination(
                   icon: Icon(Icons.person_outline),
                   label: 'Profile',
                 ),
@@ -73,6 +79,14 @@ final appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/clubs',
+              builder: (context, state) => const ClubsPage(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/discover',
               builder: (context, state) => const ClubsPage(),
             ),
           ],
@@ -143,6 +157,17 @@ final appRouter = GoRouter(
             eventId: extra,
           );
         }
-    )
+    ),
+    GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/edit-profile',
+        builder: (context,state){
+          final extra = state.extra as ProfileUser;
+          return EditProfilePage(
+            profileUser: extra,
+          );
+        }
+        )
+
   ],
 );
