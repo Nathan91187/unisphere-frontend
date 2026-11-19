@@ -1,7 +1,10 @@
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_category.dart';
@@ -25,7 +28,8 @@ class _CreateClubPageState extends State<CreateClubPage> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
-  final imageUrlController = TextEditingController();
+  final ImagePicker imagePicker = ImagePicker();
+  File? selectedImage;
 
   ClubCategory? selectedCategory;
 
@@ -35,7 +39,6 @@ class _CreateClubPageState extends State<CreateClubPage> {
 
     nameController.text = widget.club?.name ?? '';
     descriptionController.text = widget.club?.description ?? '';
-    imageUrlController.text = widget.club?.imageUrl ?? '';
     selectedCategory = widget.club?.category;
   }
 
@@ -43,8 +46,19 @@ class _CreateClubPageState extends State<CreateClubPage> {
   void dispose() {
     nameController.dispose();
     descriptionController.dispose();
-    imageUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await imagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   @override
@@ -76,7 +90,6 @@ class _CreateClubPageState extends State<CreateClubPage> {
                 context,
               ).showSnackBar(SnackBar(content: Text(state.message)));
 
-              // Close the form and return the saved Club to the previous page.
               context.pop(state.club);
             }
           },
@@ -183,19 +196,61 @@ class _CreateClubPageState extends State<CreateClubPage> {
                     ),
 
                     const SizedBox(height: 16),
-                    _buildLabel('Image URL'),
+                    _buildLabel('Club Image'),
                     const SizedBox(height: 7),
-                    TextFormField(
-                      controller: imageUrlController,
-                      keyboardType: TextInputType.url,
-                      decoration: _inputDecoration(
-                        hint: 'https://example.com/image.jpg',
-                        icon: Icons.image_outlined,
+                    GestureDetector(
+                      onTap: isLoading ? null : _pickImage,
+                      child: Container(
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: selectedImage != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            selectedImage!,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                            : widget.club?.imageUrl != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            widget.club!.imageUrl!,
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                            : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate_outlined,
+                              size: 40,
+                              color: AppColors.secondary,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Tap to select a club image',
+                              style: TextStyle(
+                                color: AppColors.secondaryText,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 5),
                     const Text(
-                      'Optional. You can add a club image later.',
+                      'Optional. Select an image from your gallery.',
                       style: TextStyle(
                         color: AppColors.secondaryText,
                         fontSize: 12,
@@ -216,12 +271,9 @@ class _CreateClubPageState extends State<CreateClubPage> {
                                 UpdateClub(
                                   clubId: widget.club!.id,
                                   name: nameController.text.trim(),
-                                  description: descriptionController.text
-                                      .trim(),
-                                  imageUrl:
-                                  imageUrlController.text.trim().isEmpty
-                                      ? null
-                                      : imageUrlController.text.trim(),
+                                  description:
+                                  descriptionController.text.trim(),
+                                  image: selectedImage,
                                   category: selectedCategory!,
                                 ),
                               );
@@ -229,12 +281,8 @@ class _CreateClubPageState extends State<CreateClubPage> {
                               context.read<ClubBloc>().add(
                                 CreateClub(
                                   name: nameController.text.trim(),
-                                  description: descriptionController.text
-                                      .trim(),
-                                  imageUrl:
-                                  imageUrlController.text.trim().isEmpty
-                                      ? null
-                                      : imageUrlController.text.trim(),
+                                  description: descriptionController.text.trim(),
+                                  image: selectedImage,
                                   category: selectedCategory!,
                                 ),
                               );
@@ -257,7 +305,11 @@ class _CreateClubPageState extends State<CreateClubPage> {
                             color: AppColors.surface,
                           ),
                         )
-                            : Icon(isEditing ? Icons.save_outlined : Icons.add),
+                            : Icon(
+                          isEditing
+                              ? Icons.save_outlined
+                              : Icons.add,
+                        ),
                         label: Text(
                           isLoading
                               ? (isEditing ? 'Saving...' : 'Creating...')
@@ -300,7 +352,10 @@ class _CreateClubPageState extends State<CreateClubPage> {
         color: AppColors.secondaryText.withValues(alpha: 0.8),
         fontSize: 14,
       ),
-      prefixIcon: Icon(icon, color: AppColors.secondary.withValues(alpha: 0.7)),
+      prefixIcon: Icon(
+        icon,
+        color: AppColors.secondary.withValues(alpha: 0.7),
+      ),
       filled: true,
       fillColor: AppColors.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
