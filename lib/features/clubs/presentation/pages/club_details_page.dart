@@ -239,6 +239,9 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
             }
           },
           builder: (context,state){
+            if(state is ClubMembershipLoading){
+              return Loading();
+            }
             final membership =
             state is ClubMembershipLoaded &&
                 state.membership.clubId == club.id
@@ -267,11 +270,13 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                         aspectRatio: 16 / 9,
                         child: ClipRRect(
                           borderRadius: BorderRadiusGeometry.circular(10),
-                          child: Image.asset(
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              "assets/images/ronaldo_crying.png"
-                          ),
+                          child: club.imageUrl != null
+                              ? Image.network(
+                            club.imageUrl!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          )
+                              : const Icon(Icons.add_photo_alternate_outlined),
                         ),
                       ),
                       SizedBox(height: 10),
@@ -340,28 +345,61 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                         ),
                       ),
                       SizedBox(height: 6,),
-                      Row(
+                        Row(
                         children: [
                           Icon(
                             Icons.people,
                             color: colors.secondary,
                             size: 20,
                           ),
-                          SizedBox(width: 5,),
                           Expanded(
                             child: Text(
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                "${club.memberCount.toString()} members",
-                                style: TextStyle(
-                                    color: textSecondary,
-                                    fontWeight: FontWeight.w500
-                                )
+                              '${club.memberCount} members',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
+                          if(isMember || isOrganizer)
+                            InkWell(
+                              onTap: () async{
+                                final bloc = context.read<ClubMembershipBloc>();
+                                await context.push(
+                                  '/club-members',
+                                  extra: {
+                                    'clubId': club.id,
+                                    'clubName': club.name,
+                                  },
+                                );
+                                if(!bloc.isClosed){
+                                  bloc.add(club_membership_event.GetMyMembership(clubId: club.id));
+                                }
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'See all',
+                                    style: TextStyle(
+                                      color: AppColors.secondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.chevron_right,
+                                    size: 18,
+                                    color: AppColors.secondary,
+                                  ),
+                                ],
+                              ),
+                            )
                         ],
                       ),
-                      SizedBox(height: 6,),
+                      SizedBox(height: 10,),
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
@@ -375,11 +413,22 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                             foregroundColor: Colors.white,
                           ),
                           onPressed: () async {
-                            final authState = context.read<AuthBloc>().state;
-                            if(authState is !Authenticated && context.mounted){
+                            final authBloc = context.read<AuthBloc>();
+                            final membershipBloc = context.read<ClubMembershipBloc>();
+
+                            AuthState authState = authBloc.state;
+
+                            if (authState is AuthInitial) {
+                              authState = await authBloc.initialAuthState;
+                            }
+
+                            if (!context.mounted) return;
+
+                            if (authState is Unauthenticated) {
                               await context.push('/sign-in');
                               return;
                             }
+
                             if (isMember || isOrganizer) {
                               if (isSoleOrganizer) {
                                 final confirmed = await showLeaveClubDialog(
@@ -401,13 +450,13 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                                 );
 
                                 if (confirmed == true && context.mounted) {
-                                  context.read<ClubMembershipBloc>().add(
+                                  membershipBloc.add(
                                     club_membership_event.LeaveClub(clubId: club.id),
                                   );
                                 }
                               }
                             } else {
-                              context.read<ClubMembershipBloc>().add(
+                              membershipBloc.add(
                                 club_membership_event.JoinClub(clubId: club.id),
                               );
                             }
