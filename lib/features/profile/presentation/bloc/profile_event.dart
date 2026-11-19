@@ -1,3 +1,5 @@
+import 'dart:io';
+
 abstract class ProfileEvent {
   const ProfileEvent();
 }
@@ -23,14 +25,19 @@ class CreateProfile extends ProfileEvent{
   final String? profileImageUrl;
   final String username;
   const CreateProfile({this.profileImageUrl, required this.displayName, required this.username});
-}
-class UpdateProfile extends ProfileEvent{
-  final String displayName;
-  final String? profileImageUrl;
+}class SaveProfileChanges extends ProfileEvent {
   final String username;
-  const UpdateProfile({this.profileImageUrl, required this.displayName,required this.username});
-}
+  final String displayName;
+  final bool updateText;
+  final File? image;
 
+  const SaveProfileChanges({
+    required this.username,
+    required this.displayName,
+    required this.updateText,
+    this.image,
+  });
+}
 class DeleteProfile extends ProfileEvent{
   const DeleteProfile();
 }
