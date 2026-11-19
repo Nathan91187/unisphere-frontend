@@ -32,8 +32,22 @@ class ClubMembershipBloc extends Bloc<ClubMembershipEvent, ClubMembershipState>{
           ));
         }
       } catch (e) {
-        emit(ClubMembershipError(errorMsg: e.toString()));
+        emit(ClubMembershipError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        ));
       }
+    });
+    on<GetClubMembers>((event,emit)async{
+        emit(ClubMembershipLoading());
+        try{
+          final members = await clubRepository.getClubMembers(clubId: event.clubId);
+          emit(ClubMembersLoaded(members: members));
+        }
+        catch(e){
+          emit(ClubMembershipError(
+            errorMsg: e.toString().replaceFirst('Exception: ', ''),
+          ));
+        }
     });
     on<LeaveClub>((event,emit)async{
       try{
@@ -42,7 +56,9 @@ class ClubMembershipBloc extends Bloc<ClubMembershipEvent, ClubMembershipState>{
         emit(ClubMembershipOperationSuccess(message: 'You have left the club'));
       }
       catch(e){
-        emit(ClubMembershipError(errorMsg: e.toString()));
+        emit(ClubMembershipError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        ));
       }
     });
     on<JoinClub>((event,emit)async{
@@ -52,7 +68,9 @@ class ClubMembershipBloc extends Bloc<ClubMembershipEvent, ClubMembershipState>{
         emit(ClubMembershipLoaded(membership: membership));
       }
       catch(e){
-        emit(ClubMembershipError(errorMsg: e.toString()));
+        emit(ClubMembershipError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        ));
       }
     });
     on<CheckLeaveEligibility>((event, emit) async {
@@ -72,7 +90,9 @@ class ClubMembershipBloc extends Bloc<ClubMembershipEvent, ClubMembershipState>{
           isOnlyOrganizer: isOnlyOrganizer,
         ));
       } catch (e) {
-        emit(ClubMembershipError(errorMsg: e.toString()));
+        emit(ClubMembershipError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        ));
       }
     });
   }
