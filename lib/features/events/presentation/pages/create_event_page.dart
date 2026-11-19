@@ -1,7 +1,9 @@
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uni_sphere/core/theme/app_colors.dart';
 import 'package:uni_sphere/features/events/domain/entities/event.dart';
 import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
@@ -12,6 +14,7 @@ import 'package:uni_sphere/features/events/presentation/bloc/event_state.dart';
 class CreateEventPage extends StatefulWidget {
   final Event? event;
   final int? clubId;
+
   const CreateEventPage({
     super.key,
     this.clubId,
@@ -27,12 +30,14 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
-  final imageUrlController = TextEditingController();
   final capacityController = TextEditingController();
   final locationController = TextEditingController();
   final dateController = TextEditingController();
   final startTimeController = TextEditingController();
   final endTimeController = TextEditingController();
+
+  final ImagePicker imagePicker = ImagePicker();
+  File? selectedImage;
 
   EventCategory? selectedCategory;
   DateTime? selectedDate;
@@ -47,7 +52,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
     nameController.text = widget.event?.name ?? '';
     descriptionController.text = widget.event?.description ?? '';
-    imageUrlController.text = widget.event?.imageUrl ?? '';
     capacityController.text = widget.event?.capacity.toString() ?? '';
     locationController.text = widget.event?.location ?? '';
 
@@ -72,7 +76,6 @@ class _CreateEventPageState extends State<CreateEventPage> {
   void dispose() {
     nameController.dispose();
     descriptionController.dispose();
-    imageUrlController.dispose();
     capacityController.dispose();
     locationController.dispose();
     dateController.dispose();
@@ -80,6 +83,18 @@ class _CreateEventPageState extends State<CreateEventPage> {
     endTimeController.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await imagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+
+    if (pickedFile != null && mounted) {
+      setState(() {
+        selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -144,12 +159,15 @@ class _CreateEventPageState extends State<CreateEventPage> {
     if (selectedStartTime == null || selectedEndTime == null) {
       return false;
     }
+
     final startMinutes =
         selectedStartTime!.hour * 60 + selectedStartTime!.minute;
     final endMinutes =
         selectedEndTime!.hour * 60 + selectedEndTime!.minute;
+
     return endMinutes > startMinutes;
   }
+
   void _submitEvent() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -161,24 +179,23 @@ class _CreateEventPageState extends State<CreateEventPage> {
       );
       return;
     }
+
     final name = nameController.text.trim();
     final description = descriptionController.text.trim();
-    final imageUrl = imageUrlController.text.trim().isEmpty
-        ? null
-        : imageUrlController.text.trim();
     final category = selectedCategory!;
     final date = selectedDate!;
     final startTime = _formatTimeForApi(selectedStartTime!);
     final endTime = _formatTimeForApi(selectedEndTime!);
     final capacity = int.parse(capacityController.text.trim());
     final location = locationController.text.trim();
+
     if (isEditing) {
       context.read<EventBloc>().add(
         UpdateEvent(
           eventId: widget.event!.id,
           name: name,
           description: description,
-          imageUrl: imageUrl,
+          image: selectedImage,
           category: category,
           date: date,
           startTime: startTime,
@@ -192,14 +209,14 @@ class _CreateEventPageState extends State<CreateEventPage> {
         CreateEvent(
           name: name,
           description: description,
-          imageUrl: imageUrl,
+          image: selectedImage,
           category: category,
           date: date,
           startTime: startTime,
           endTime: endTime,
           capacity: capacity,
           location: location,
-          clubId: widget.clubId
+          clubId: widget.clubId,
         ),
       );
     }
@@ -446,20 +463,44 @@ class _CreateEventPageState extends State<CreateEventPage> {
                     ),
 
                     const SizedBox(height: 16),
-                    _buildLabel('Image URL'),
+                    _buildLabel('Event image'),
                     const SizedBox(height: 7),
-                    TextFormField(
-                      controller: imageUrlController,
-                      enabled: !isLoading,
-                      keyboardType: TextInputType.url,
-                      decoration: _inputDecoration(
-                        hint: 'https://example.com/image.jpg',
-                        icon: Icons.image_outlined,
+
+                    GestureDetector(
+                      onTap: isLoading ? null : _pickImage,
+                      child: Container(
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: selectedImage != null
+                            ? Image.file(
+                          selectedImage!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        )
+                            : widget.event?.imageUrl != null
+                            ? Image.network(
+                          widget.event!.imageUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        )
+                            : const Center(
+                          child: Icon(
+                            Icons.add_photo_alternate_outlined,
+                            size: 40,
+                            color: AppColors.secondaryText,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 5),
                     const Text(
-                      'Optional. You can add an event image later.',
+                      'Optional. Tap to select an image from your gallery.',
                       style: TextStyle(
                         color: AppColors.secondaryText,
                         fontSize: 12,
@@ -488,7 +529,9 @@ class _CreateEventPageState extends State<CreateEventPage> {
                             color: AppColors.surface,
                           ),
                         )
-                            : Icon(isEditing ? Icons.save_outlined : Icons.add),
+                            : Icon(
+                          isEditing ? Icons.save_outlined : Icons.add,
+                        ),
                         label: Text(
                           isLoading
                               ? (isEditing ? 'Updating...' : 'Creating...')
