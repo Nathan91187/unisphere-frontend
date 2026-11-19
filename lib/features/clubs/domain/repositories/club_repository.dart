@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_category.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club_membership.dart';
@@ -21,5 +23,7 @@ abstract class ClubRepository {
   Future<void> leaveClub({required int clubId});
   Future<ClubMembership> joinClub({required int clubId});
   Future<bool> checkLeaveEligibility({required int clubId});
+  Future<List<ClubMembership>> getClubMembers({required int clubId});
+  Future<Club> updateClubImage(int clubId, File file);
 }
 
