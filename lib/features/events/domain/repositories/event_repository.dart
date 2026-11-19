@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:uni_sphere/features/events/domain/entities/event.dart';
 import 'package:uni_sphere/features/events/domain/entities/event_category.dart';
 import 'package:uni_sphere/features/events/domain/entities/rsvp.dart';
@@ -38,4 +40,5 @@ abstract class EventRepository {
   Future<Rsvp> createRsvp({required RsvpStatus status, required int eventId});
   Future<Rsvp> updateRsvp({required RsvpStatus status, required int eventId});
   Future<void> deleteRsvp({required int eventId});
+  Future<Event> updateEventImage(int eventId, File image);
 }
