@@ -204,13 +204,16 @@ class _EventsPageState extends State<EventsPage> {
                                       AspectRatio(
                                         aspectRatio: 16 / 9,
                                         child: ClipRRect(
-                                          borderRadius: BorderRadiusGeometry.circular(10),
-                                          child: Image.asset(
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                              height: 500,
-                                              "assets/images/ronaldo_crying.png"
+                                          borderRadius: BorderRadiusGeometry.circular(
+                                            10,
                                           ),
+                                          child: events[index].imageUrl != null
+                                              ? Image.network(
+                                            events[index].imageUrl!,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                          )
+                                              : const Icon(Icons.add_photo_alternate_outlined),
                                         ),
                                       ),
                                       SizedBox(height: 10),
