@@ -10,4 +10,16 @@ class ProfileUser {
     required this.displayName,
     this.profileImageUrl,
   });
+  ProfileUser copyWith({
+    String? username,
+    String? displayName,
+    String? profileImageUrl
+}){
+    return ProfileUser(
+        uid : uid,
+        username : username ?? this.username,
+        displayName : displayName ?? this.displayName,
+        profileImageUrl : profileImageUrl ?? this.profileImageUrl
+    );
+  }
 }
