@@ -119,6 +119,18 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
   @override
+  void initState() {
+    super.initState();
+
+    final authState = context.read<AuthBloc>().state;
+
+    if (authState is Authenticated) {
+      context.read<ProfileBloc>().add(
+        GetProfileByUid(uid: authState.user.uid),
+      );
+    }
+  }
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     return BlocConsumer<AuthBloc, AuthState>(
@@ -138,7 +150,7 @@ class _ProfilePageState extends State<ProfilePage> {
           if(state is AuthLoading){
             return const Loading();
           }
-          if (state is Authenticated) {
+          else if (state is Authenticated) {
             if (state.user.displayName == null ||
                 state.user.displayName!.isEmpty) {
               return const Loading();
@@ -169,6 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   if(profileState is ProfileLoaded){
                     final profileUser = profileState.profileUser;
                     return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 35),
                         child: Column(
@@ -304,7 +317,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             );
           }
-          if (state is Unauthenticated) {
+          else if (state is Unauthenticated) {
             return Scaffold(
               appBar: AppBar(
                 title: const Text('Profile'),
@@ -370,6 +383,5 @@ class _ProfilePageState extends State<ProfilePage> {
           return SizedBox.shrink();
         }
     );
-
   }
 }
