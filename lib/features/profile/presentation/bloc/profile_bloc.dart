@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uni_sphere/features/profile/domain/entities/profile_user.dart';
 import 'package:uni_sphere/features/profile/domain/repository/profile_repository.dart';
 import 'package:uni_sphere/features/profile/presentation/bloc/profile_event.dart';
 import 'package:uni_sphere/features/profile/presentation/bloc/profile_state.dart';
@@ -36,7 +37,7 @@ class ProfileBloc extends Bloc<ProfileEvent,ProfileState>{
         emit(const ProfilesLoaded(profiles: []));
         return;
       }
-      emit(ProfileLoading());
+      emit(const ProfileLoading());
       try{
         final profiles = await profileRepository.getAllProfilesByUid(uids: event.uids);
         emit(ProfilesLoaded(profiles: profiles));
@@ -79,15 +80,32 @@ class ProfileBloc extends Bloc<ProfileEvent,ProfileState>{
       }
     });
 
-    on<UpdateProfile>((event,emit) async{
+    on<SaveProfileChanges>((event, emit) async {
       emit(const ProfileLoading());
-      try{
-        final profile = await profileRepository.updateProfile(
-            username: event.username.trim(),
+
+      try {
+        ProfileUser? updatedProfile;
+        if (event.updateText) {
+          updatedProfile = await profileRepository.updateProfile(
+            username: event.username,
             displayName: event.displayName,
-            profileImageUrl: event.profileImageUrl);
-        emit(ProfileLoaded(profileUser: profile));
-      }catch(e){
+          );
+        }
+
+        if (event.image != null) {
+          final imageUpdatedProfile = await profileRepository.updateProfileImage(event.image!);
+
+          // Combine the updated image URL with the latest profile data.
+          updatedProfile = updatedProfile == null
+              ? imageUpdatedProfile
+              : updatedProfile.copyWith(
+            profileImageUrl: imageUpdatedProfile.profileImageUrl,
+          );
+        }
+        if (updatedProfile != null) {
+          emit(ProfileLoaded(profileUser: updatedProfile));
+        }
+      } catch (e) {
         emit(ProfileError(
           errorMsg: e.toString().replaceFirst('Exception: ', ''),
         ));
