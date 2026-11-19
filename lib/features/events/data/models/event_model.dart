@@ -69,7 +69,8 @@ class EventModel {
         organizerUid: organizerUid,
         organizerName: organizerName,
         clubId: clubId,
-        clubName: clubName
+        clubName: clubName,
+        imageUrl: imageUrl,
     );
     }
 }
