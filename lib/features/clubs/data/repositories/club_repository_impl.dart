@@ -1,5 +1,5 @@
+import 'dart:io';
 import 'package:uni_sphere/features/clubs/data/datasources/club_remote_data_source.dart';
-import 'package:uni_sphere/features/clubs/data/models/club_membership_model.dart';
 import 'package:uni_sphere/features/clubs/data/models/create_club_request.dart';
 import 'package:uni_sphere/features/clubs/data/models/update_club_request.dart';
 import 'package:uni_sphere/features/clubs/domain/entities/club.dart';
@@ -66,12 +66,15 @@ class ClubRepositoryImpl implements ClubRepository{
     final membership = await remoteDataSource.getMyMembership(clubId);
     return membership.toEntity();
   }
-
+  @override
+  Future<List<ClubMembership>> getClubMembers({required int clubId}) async{
+    final memberships = await remoteDataSource.getClubMembers(clubId);
+    return memberships.map((membership)=>membership.toEntity()).toList();
+  }
   @override
   Future<void> leaveClub({required int clubId}) async{
     await remoteDataSource.leaveClub(clubId);
   }
-
   @override
   Future<ClubMembership> joinClub({required int clubId})async{
     final membership = await remoteDataSource.joinClub(clubId);
@@ -81,5 +84,10 @@ class ClubRepositoryImpl implements ClubRepository{
   @override
   Future<bool> checkLeaveEligibility({required int clubId}) async{
     return await remoteDataSource.checkLeaveEligibility(clubId);
+  }
+  @override
+  Future<Club> updateClubImage(int clubId, File file) async {
+    final response = await remoteDataSource.updateClubImage(clubId, file);
+    return response.toEntity();
   }
 }
