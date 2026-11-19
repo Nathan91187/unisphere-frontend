@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../domain/entities/club_category.dart';
 
 abstract class ClubEvent {
@@ -9,12 +11,12 @@ class LoadClubs extends ClubEvent{
 class CreateClub extends ClubEvent{
   final String name;
   final String description;
-  final String? imageUrl;
+  final File? image;
   final ClubCategory category;
   const CreateClub({
     required this.name,
     required this.description,
-    this.imageUrl,
+    this.image,
     required this.category,
   });
 }
@@ -26,13 +28,13 @@ class UpdateClub extends ClubEvent{
   final int clubId;
   final String name;
   final String description;
-  final String? imageUrl;
+  final File? image;
   final ClubCategory category;
   const UpdateClub({
     required this.clubId,
     required this.name,
     required this.description,
-    this.imageUrl,
+    this.image,
     required this.category,
   });
 }
