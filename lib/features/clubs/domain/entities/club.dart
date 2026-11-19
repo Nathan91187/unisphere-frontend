@@ -15,4 +15,21 @@ class Club {
   required this.memberCount,
   required this.category,
 });
+  Club copyWith({
+    int? id,
+    String? name,
+    String? description,
+    String? imageUrl,
+    int? memberCount,
+    ClubCategory? category,
+  }) {
+    return Club(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
+      memberCount: memberCount ?? this.memberCount,
+      category: category ?? this.category,
+    );
+  }
 }
