@@ -13,6 +13,11 @@ abstract final class AppTheme {
       surface: AppColors.surface
     ),
     scaffoldBackgroundColor: AppColors.background,
-
-  );
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.primaryText,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        centerTitle: false,
+  ));
 }
