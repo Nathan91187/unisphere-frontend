@@ -8,6 +8,8 @@ import 'package:uni_sphere/features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/auth_failure.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState>{
+  final Completer<AuthState> _initialAuthState = Completer<AuthState>();
+  Future<AuthState> get initialAuthState => _initialAuthState.future;
   final AuthRepository repository;
   late final StreamSubscription _authSubscription;
   final unexpectedError = 'Something went wrong. Please try again.';
@@ -34,11 +36,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState>{
     });
     on<AuthStateChangeDetected>((event, emit) {
       final user = event.user;
-      if (user == null) {
-        emit(const Unauthenticated());
-      } else {
-        emit(Authenticated(user: user));
+      final authState = user == null
+          ? const Unauthenticated()
+          : Authenticated(user: user);
+
+      if (!_initialAuthState.isCompleted) {
+        _initialAuthState.complete(authState);
       }
+      emit(authState);
     });
     on<SignInRequested>((event,emit)async{
       try {
