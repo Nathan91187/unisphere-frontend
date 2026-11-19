@@ -1,7 +1,9 @@
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uni_sphere/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:uni_sphere/features/profile/presentation/bloc/profile_event.dart';
 import 'package:uni_sphere/features/profile/presentation/bloc/profile_state.dart';
@@ -11,16 +13,14 @@ import '../../domain/entities/profile_user.dart';
 class EditProfilePage extends StatefulWidget {
   final ProfileUser profileUser;
 
-  const EditProfilePage({
-    super.key,
-    required this.profileUser,
-  });
+  const EditProfilePage({super.key, required this.profileUser});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
+  File? selectedImage;
   final _formKey = GlobalKey<FormState>();
   final displayNameController = TextEditingController();
 
@@ -32,12 +32,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     usernameController.dispose();
     super.dispose();
   }
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
     displayNameController.text = widget.profileUser.displayName;
     usernameController.text = widget.profileUser.username;
   }
+
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
@@ -69,15 +71,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.border,
-              ),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.border,
-              ),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -92,6 +90,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  Future<void> pickProfileImage() async {
+    final picker = ImagePicker();
+
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+
+    setState(() {
+      selectedImage = File(image.path);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,43 +109,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
         title: const Text('Edit Profile'),
         backgroundColor: AppColors.background,
       ),
-      body: BlocConsumer<ProfileBloc,ProfileState>(
-        listener: (context,state){
-          if(state is ProfileLoaded){
+      body: BlocConsumer<ProfileBloc, ProfileState>(
+        listener: (context, state) {
+          if (state is ProfileLoaded) {
             context.pop();
           }
           if (state is ProfileError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMsg)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMsg)));
           }
-          if(state is UsernameAvailabilityChecked){
-            if(state.isAvailable){
-              context.read<ProfileBloc>().add(UpdateProfile(
+          if (state is UsernameAvailabilityChecked) {
+            if (state.isAvailable) {
+              context.read<ProfileBloc>().add(
+                SaveProfileChanges(
+
                   displayName: displayNameController.text.trim(),
                   username: usernameController.text.trim(),
-                  profileImageUrl: widget.profileUser.profileImageUrl
-              ));
-            }
-            else{
+                  image: selectedImage,
+                  updateText: true
+                ),
+              );
+            } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(
-                          'That username is already taken. Please choose another one.'
-                      )
-                  )
+                SnackBar(
+                  content: Text(
+                    'That username is already taken. Please choose another one.',
+                  ),
+                ),
               );
             }
           }
         },
-        builder: (context,state){
+        builder: (context, state) {
           final isLoading = state is ProfileLoading;
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 25,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -148,15 +157,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           CircleAvatar(
                             radius: 48,
                             backgroundColor: AppColors.selectedSurface,
-                            child: const Icon(
-                              Icons.person_outline,
-                              size: 48,
-                              color: AppColors.primary,
-                            ),
+                            backgroundImage: selectedImage != null
+                                ? FileImage(selectedImage!)
+                                : widget.profileUser.profileImageUrl != null
+                                ? NetworkImage(
+                                    widget.profileUser.profileImageUrl!,
+                                  )
+                                : null,
+                            child:
+                                selectedImage == null &&
+                                    widget.profileUser.profileImageUrl == null
+                                ? const Icon(Icons.person, size: 40)
+                                : null,
                           ),
                           const SizedBox(height: 12),
                           TextButton.icon(
-                            onPressed: () {},
+                            onPressed: pickProfileImage,
                             icon: const Icon(Icons.camera_alt_outlined),
                             label: const Text('Change photo'),
                             style: TextButton.styleFrom(
@@ -180,16 +196,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
                     const SizedBox(height: 12),
 
-                    const Divider(
-                      height: 1,
-                      color: AppColors.border,
-                    ),
+                    const Divider(height: 1, color: AppColors.border),
 
                     const SizedBox(height: 20),
 
                     _buildTextField(
-                      validator: (value){
-                        if(value == null || value.trim().isEmpty){
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Display name can\'t be empty';
                         }
                         if (value.trim().length > 100) {
@@ -204,7 +217,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(height: 20),
 
                     _buildTextField(
-                      validator: (value){
+                      validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter a username';
                         }
@@ -238,35 +251,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       width: double.infinity,
                       height: 48,
                       child: FilledButton(
-                        onPressed: isLoading ? null : () {
-                          if(_formKey.currentState!.validate()){
-                            // No changes made; return to the profile page.
-                            final username = usernameController.text.trim();
-                            final displayName = displayNameController.text.trim();
-                            final bloc = context.read<ProfileBloc>();
-                            if (username == widget.profileUser.username &&
-                                displayName == widget.profileUser.displayName) {
-                              context.pop();
-                              return;
-                            }
+                        onPressed: isLoading
+                            ? null
+                            : () {
+                                if (!_formKey.currentState!.validate()) return;
 
-                            // Only the display name changed; update the profile directly.
-                            if (username == widget.profileUser.username) {
-                              bloc.add(
-                                UpdateProfile(
-                                  username: username,
-                                  displayName: displayName,
-                                  profileImageUrl: widget.profileUser.profileImageUrl,
-                                ),
-                              );
-                            } else {
-                              // Username changed; verify its availability before updating.
-                              bloc.add(
-                                CheckUsernameAvailability(username: username),
-                              );
-                            }
-                          }
-                        },
+                                final username = usernameController.text.trim();
+                                final displayName = displayNameController.text.trim();
+
+                                final usernameChanged = username != widget.profileUser.username;
+                                final displayNameChanged = displayName != widget.profileUser.displayName;
+                                final imageChanged = selectedImage != null;
+
+                                if (!usernameChanged && !displayNameChanged && !imageChanged) {
+                                  context.pop();
+                                  return;
+                                }
+                                final bloc = context.read<ProfileBloc>();
+
+                                if (usernameChanged) {
+                                  bloc.add(
+                                    CheckUsernameAvailability(
+                                      username: username,
+                                    ),
+                                  );
+                                } else {
+                                  bloc.add(
+                                    SaveProfileChanges(
+                                      username: username,
+                                      displayName: displayName,
+                                      updateText: displayNameChanged || usernameChanged,
+                                      image: selectedImage,
+                                    ),
+                                  );
+                                }
+                              },
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
@@ -277,9 +296,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ),
                         child: const Text(
                           'Save Changes',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -290,12 +307,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       width: double.infinity,
                       height: 48,
                       child: OutlinedButton(
-                        onPressed:  isLoading ? null :() => context.pop(context),
+                        onPressed: isLoading
+                            ? null
+                            : () => context.pop(context),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primaryText,
-                          side: const BorderSide(
-                            color: AppColors.border,
-                          ),
+                          side: const BorderSide(color: AppColors.border),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -309,7 +326,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
           );
         },
-
       ),
     );
   }
