@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../domain/entities/event_category.dart';
 
 abstract class EventEvent {
@@ -13,7 +15,7 @@ class LoadEvents extends EventEvent{
 class CreateEvent extends EventEvent{
   final String name;
   final String description;
-  final String? imageUrl;
+  final File? image;
   final EventCategory category;
   final DateTime date;
   final String startTime;
@@ -24,7 +26,7 @@ class CreateEvent extends EventEvent{
   CreateEvent({
     required this.name,
     required this.description,
-    this.imageUrl,
+    this.image,
     required this.category,
     required this.date,
     required this.startTime,
@@ -38,7 +40,7 @@ class UpdateEvent extends EventEvent{
   final int eventId;
   final String name;
   final String description;
-  final String? imageUrl;
+  final File? image;
   final EventCategory category;
   final DateTime date;
   final String startTime;
@@ -49,7 +51,7 @@ class UpdateEvent extends EventEvent{
     required this.eventId,
     required this.name,
     required this.description,
-    this.imageUrl,
+    this.image,
     required this.category,
     required this.date,
     required this.startTime,
