@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart';
@@ -267,6 +268,44 @@ class EventRemoteDataSource {
 
         throw Exception(errorResponse['message']);
       }
+    } on http.ClientException {
+      throw Exception(unableToConnect);
+    } on TimeoutException {
+      throw Exception(unableToConnect);
+    }
+  }
+  Future<EventModel> updateEventImage(int eventId, File image) async {
+    try {
+      final token = await FirebaseAuth.instance.currentUser
+          ?.getIdToken()
+          .timeout(const Duration(seconds: 15));
+
+      if (token == null) {
+        throw Exception('User is not authenticated');
+      }
+
+      final request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('$uri/$eventId/image'),
+      );
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          image.path,
+        ),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      return EventModel.fromJson(body);
     } on http.ClientException {
       throw Exception(unableToConnect);
     } on TimeoutException {
