@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:uni_sphere/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:uni_sphere/features/profile/data/models/create_profile_request.dart';
 import 'package:uni_sphere/features/profile/data/models/update_profile_request.dart';
@@ -30,11 +32,10 @@ class ProfileRepositoryImpl implements ProfileRepository{
   }
 
   @override
-  Future<ProfileUser> updateProfile({required String username,required String displayName, String? profileImageUrl}) async{
+  Future<ProfileUser> updateProfile({required String username,required String displayName}) async{
     final request = UpdateProfileRequest(
         username: username,
         displayName: displayName,
-        profileImageUrl: profileImageUrl
     );
     final response = await dataSource.updateProfile(request);
     return response.toEntity();
@@ -57,4 +58,9 @@ class ProfileRepositoryImpl implements ProfileRepository{
    return dataSource.isUsernameAvailable(username);
   }
 
+  @override
+  Future<ProfileUser> updateProfileImage(File file) async{
+    final profile = await dataSource.updateProfileImage(file);
+    return profile.toEntity();
+  }
 }
