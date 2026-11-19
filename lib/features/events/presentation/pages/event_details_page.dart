@@ -240,523 +240,530 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
               ),
           ],
         ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: ClipRRect(
-                      borderRadius: BorderRadiusGeometry.circular(10),
-                      child: Image.asset(
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        "assets/images/ronaldo_crying.png",
+        body: RefreshIndicator(
+          onRefresh: ()async{
+            context.read<EventBloc>().add(LoadEventById(eventId: widget.event.id));
+        },
+          child: SafeArea(
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: ClipRRect(
+                        borderRadius: BorderRadiusGeometry.circular(10),
+                        child: event.imageUrl != null
+                            ? Image.network(
+                          event.imageUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        )
+                            : const Icon(Icons.add_photo_alternate_outlined),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
-                    decoration: BoxDecoration(
-                      color: colors.secondary.withValues(alpha: 0.30),
-                      borderRadius: BorderRadius.circular(10),
+                    SizedBox(height: 10),
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                      decoration: BoxDecoration(
+                        color: colors.secondary.withValues(alpha: 0.30),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        event.category.name.toUpperCase(),
+                        style: TextStyle(
+                          color: colors.primary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                    child: Text(
-                      event.category.name.toUpperCase(),
+                    SizedBox(height: 20),
+                    Text(
+                      event.name,
                       style: TextStyle(
-                        color: colors.primary,
-                        fontSize: 13,
+                        color: textPrimary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(height: 18),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 10),
+                        Icon(
+                          Icons.calendar_month_outlined,
+                          color: colors.primary.withValues(alpha: 0.7),
+                        ),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "DATE",
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              EventDateFormatter.eventDetailsDateFormatter(
+                                event.date,
+                              ),
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 13),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 10),
+                        Icon(
+                          CupertinoIcons.clock,
+                          color: colors.primary.withValues(alpha: 0.7),
+                        ),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "TIME",
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              "${EventDateFormatter.startTimeFormatter(event.startTime)} - ${EventDateFormatter.startTimeFormatter(event.endTime)}",
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 13),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(width: 10),
+                        Icon(
+                          Icons.location_on_outlined,
+                          color: colors.primary.withValues(alpha: 0.7),
+                        ),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "LOCATION",
+                              style: TextStyle(
+                                color: textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              event.location,
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      "About this event",
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    event.name,
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 20,
+                    SizedBox(height: 6),
+                    Text(
+                      event.description,
+                      style: TextStyle(color: textSecondary),
                     ),
-                  ),
-                  SizedBox(height: 18),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 10),
-                      Icon(
-                        Icons.calendar_month_outlined,
-                        color: colors.primary.withValues(alpha: 0.7),
+                    SizedBox(height: 14),
+                    Divider(
+                      height: 1,
+                      color: textSecondary.withValues(alpha: 0.3),
+                    ),
+                    SizedBox(height: 14),
+                    Text(
+                      "Organized by",
+                      style: TextStyle(
+                        color: textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "DATE",
-                            style: TextStyle(
-                              color: textSecondary,
-                              fontSize: 12,
-                            ),
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Container(
+                          height: 40,
+                          width: 40,
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: colors.secondary.withValues(alpha: 0.25),
                           ),
-                          Text(
-                            EventDateFormatter.eventDetailsDateFormatter(
-                              event.date,
+                          child: Icon(
+                            Icons.person_outline,
+                            color: colors.primary,
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              event.clubId != null
+                                  ? event.clubName!
+                                  : event.organizerName,
+                              style: TextStyle(
+                                color: textPrimary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
+                            SizedBox(height: 3),
+                            Text(
+                              "Event organizer",
+                              style: TextStyle(color: textSecondary),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 15),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          color: colors.secondary,
+                          size: 20,
+                        ),
+                        SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            "${event.attendeeCount} / ${event.capacity} attendees",
                             style: TextStyle(
                               color: textPrimary,
                               fontWeight: FontWeight.w600,
-                              fontSize: 16,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 13),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 10),
-                      Icon(
-                        CupertinoIcons.clock,
-                        color: colors.primary.withValues(alpha: 0.7),
-                      ),
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "TIME",
-                            style: TextStyle(
-                              color: textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            "${EventDateFormatter.startTimeFormatter(event.startTime)} - ${EventDateFormatter.startTimeFormatter(event.endTime)}",
-                            style: TextStyle(
-                              color: textPrimary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 13),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(width: 10),
-                      Icon(
-                        Icons.location_on_outlined,
-                        color: colors.primary.withValues(alpha: 0.7),
-                      ),
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "LOCATION",
-                            style: TextStyle(
-                              color: textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            event.location,
-                            style: TextStyle(
-                              color: textPrimary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    "About this event",
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                        ),
+                        Text(
+                          "${event.capacity - event.attendeeCount} spots left",
+                          style: TextStyle(color: textSecondary, fontSize: 12),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    event.description,
-                    style: TextStyle(color: textSecondary),
-                  ),
-                  SizedBox(height: 14),
-                  Divider(
-                    height: 1,
-                    color: textSecondary.withValues(alpha: 0.3),
-                  ),
-                  SizedBox(height: 14),
-                  Text(
-                    "Organized by",
-                    style: TextStyle(
-                      color: textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Container(
-                        height: 40,
-                        width: 40,
-                        padding: EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: colors.secondary.withValues(alpha: 0.25),
-                        ),
-                        child: Icon(
-                          Icons.person_outline,
-                          color: colors.primary,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            event.clubId != null
-                                ? event.clubName!
-                                : event.organizerName,
-                            style: TextStyle(
-                              color: textPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                    SizedBox(height: 10),
+                    BlocConsumer<RsvpBloc, RsvpState>(
+                      listener: (context, state) {
+                        if (state is RsvpOperationSuccess) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(state.message)));
+                          context.read<EventBloc>().add(
+                            LoadEventById(eventId: event.id),
+                          );
+                        } else if (state is RsvpError) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(state.errorMsg)));
+                        }
+                      },
+                      builder: (context, state) {
+                        final isFull = event.attendeeCount >= event.capacity;
+                        final isOrganizer =
+                            event.organizerUid ==
+                            FirebaseAuth.instance.currentUser?.uid;
+
+                        if (isOrganizer) {
+                          return const SizedBox.shrink();
+                        }
+                        if (state is RsvpLoading) {
+                          return const Loading();
+                        }
+
+                        if (state is RsvpError) {
+                          return const Text(
+                            'Unable to load registration status.',
+                          );
+                        }
+
+                        final currentRsvp = state is MyRsvpLoaded
+                            ? state.rsvp
+                            : null;
+
+                        final hasRsvpd = currentRsvp != null;
+
+                        return SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colors.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 3),
-                          Text(
-                            "Event organizer",
-                            style: TextStyle(color: textSecondary),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 15),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.people_outline,
-                        color: colors.secondary,
-                        size: 20,
-                      ),
-                      SizedBox(width: 5),
-                      Expanded(
-                        child: Text(
-                          "${event.attendeeCount} / ${event.capacity} attendees",
-                          style: TextStyle(
-                            color: textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        "${event.capacity - event.attendeeCount} spots left",
-                        style: TextStyle(color: textSecondary, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  BlocConsumer<RsvpBloc, RsvpState>(
-                    listener: (context, state) {
-                      if (state is RsvpOperationSuccess) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(state.message)));
-                        context.read<EventBloc>().add(
-                          LoadEventById(eventId: event.id),
-                        );
-                      } else if (state is RsvpError) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(state.errorMsg)));
-                      }
-                    },
-                    builder: (context, state) {
-                      final isFull = event.attendeeCount >= event.capacity;
-                      final isOrganizer =
-                          event.organizerUid ==
-                          FirebaseAuth.instance.currentUser?.uid;
+                            onPressed: !hasRsvpd && isFull
+                                ? null
+                                : () //If the user hasn't registered AND the event is full,
+                                  // onPressed becomes null, which disables the button.
+                                  {
+                                    final user =
+                                        FirebaseAuth.instance.currentUser;
 
-                      if (isOrganizer) {
-                        return const SizedBox.shrink();
-                      }
-                      if (state is RsvpLoading) {
-                        return const Loading();
-                      }
-
-                      if (state is RsvpError) {
-                        return const Text(
-                          'Unable to load registration status.',
-                        );
-                      }
-
-                      final currentRsvp = state is MyRsvpLoaded
-                          ? state.rsvp
-                          : null;
-
-                      final hasRsvpd = currentRsvp != null;
-
-                      return SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: colors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: !hasRsvpd && isFull
-                              ? null
-                              : () //If the user hasn't registered AND the event is full,
-                                // onPressed becomes null, which disables the button.
-                                {
-                                  final user =
-                                      FirebaseAuth.instance.currentUser;
-
-                                  if (user == null) {
-                                    context.push('/sign-in');
-                                    return;
-                                  }
-                                  if (currentRsvp != null) {
-                                    selectedStatus = currentRsvp.status;
-                                    showModalBottomSheet(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      builder: (sheetContext) {
-                                        return SafeArea(
-                                          child: StatefulBuilder(
-                                            builder: (context, setModalState) {
-                                              return SingleChildScrollView(
-                                                child: SizedBox(
-                                                  width: double.infinity,
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 12,
-                                                          vertical: 25,
-                                                        ),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          'Manage Registration',
-                                                          style: TextStyle(
-                                                            color: textPrimary,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontSize: 18,
+                                    if (user == null) {
+                                      context.push('/sign-in');
+                                      return;
+                                    }
+                                    if (currentRsvp != null) {
+                                      selectedStatus = currentRsvp.status;
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        builder: (sheetContext) {
+                                          return SafeArea(
+                                            child: StatefulBuilder(
+                                              builder: (context, setModalState) {
+                                                return SingleChildScrollView(
+                                                  child: SizedBox(
+                                                    width: double.infinity,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 25,
                                                           ),
-                                                        ),
-                                                        SizedBox(height: 15),
-                                                        Text(
-                                                          'Update your attendance status for this event',
-                                                          style: TextStyle(
-                                                            color: textSecondary,
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            fontSize: 13,
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            'Manage Registration',
+                                                            style: TextStyle(
+                                                              color: textPrimary,
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                              fontSize: 18,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        SizedBox(height: 12),
-                                                        Text(
-                                                          'Select your attendance status',
-                                                          style: TextStyle(
-                                                            color: textPrimary,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontSize: 15,
+                                                          SizedBox(height: 15),
+                                                          Text(
+                                                            'Update your attendance status for this event',
+                                                            style: TextStyle(
+                                                              color: textSecondary,
+                                                              fontWeight:
+                                                                  FontWeight.w400,
+                                                              fontSize: 13,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        SizedBox(height: 10),
-                                                        RadioGroup<RsvpStatus>(
-                                                          groupValue:
-                                                              selectedStatus,
-                                                          onChanged: (value) {
-                                                            setModalState(() {
-                                                              selectedStatus =
-                                                                  value!;
-                                                            });
-                                                          },
-                                                          child: Column(
-                                                            spacing: 5,
-                                                            children: [
-                                                              Container(
-                                                                decoration: BoxDecoration(
-                                                                  border: Border.all(
-                                                                    color: textSecondary.withValues(alpha: 0.3),
-                                                                  ),
-                                                                  borderRadius: BorderRadius.circular(12),
-                                                                ),
-                                                                child: RadioListTile<RsvpStatus>(
-                                                                  value: RsvpStatus.going,
-                                                                  title: const Text(
-                                                                    'Going',
-                                                                  ),
-                                                                  subtitle: const Text(
-                                                                    'I plan to attend.',
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                decoration: BoxDecoration(
-                                                                  border: Border.all(
-                                                                    color: textSecondary.withValues(alpha: 0.3),
-                                                                  ),
-                                                                  borderRadius: BorderRadius.circular(12),
-                                                                ),
-                                                                child: RadioListTile<RsvpStatus>(
-                                                                  value: RsvpStatus.maybe,
-                                                                  title: const Text(
-                                                                    'Maybe',
-                                                                  ),
-                                                                  subtitle: const Text(
-                                                                    "I'm still deciding.",
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              Container(
-                                                                decoration: BoxDecoration(
-                                                                  border: Border.all(
-                                                                    color: textSecondary.withValues(alpha: 0.3),
-                                                                  ),
-                                                                  borderRadius: BorderRadius.circular(12),
-                                                                ),
-                                                                child: RadioListTile<RsvpStatus>(
-                                                                  value: RsvpStatus.not_going,
-                                                                  title: const Text(
-                                                                    'Not going',
-                                                                  ),
-                                                                  subtitle: const Text(
-                                                                    "I won't be attending.",
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
+                                                          SizedBox(height: 12),
+                                                          Text(
+                                                            'Select your attendance status',
+                                                            style: TextStyle(
+                                                              color: textPrimary,
+                                                              fontWeight:
+                                                                  FontWeight.w600,
+                                                              fontSize: 15,
+                                                            ),
                                                           ),
-                                                        ),
-                                                        SizedBox(height: 10),
-                                                        BlocConsumer<RsvpBloc, RsvpState>(
-                                                          listener: (context, state) {
-                                                            if (state is RsvpOperationSuccess) {
-                                                              Navigator.pop(context,);
-                                                            }
-                                                          },
-                                                          builder: (context, state) {
-                                                            final isUpdating = state is RsvpLoading;
-                                                            return Column(
+                                                          SizedBox(height: 10),
+                                                          RadioGroup<RsvpStatus>(
+                                                            groupValue:
+                                                                selectedStatus,
+                                                            onChanged: (value) {
+                                                              setModalState(() {
+                                                                selectedStatus =
+                                                                    value!;
+                                                              });
+                                                            },
+                                                            child: Column(
+                                                              spacing: 5,
                                                               children: [
-                                                                SizedBox(
-                                                                  width: double.infinity,
-                                                                  child: FilledButton(
-                                                                    style: OutlinedButton.styleFrom(
-                                                                      backgroundColor: isUpdating ? colors.surface : colors.primary,
-                                                                      shape: RoundedRectangleBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8),
-                                                                      ),
+                                                                Container(
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border.all(
+                                                                      color: textSecondary.withValues(alpha: 0.3),
                                                                     ),
-                                                                    onPressed:
-                                                                        selectedStatus == currentRsvp.status || isUpdating
-                                                                        ? null
-                                                                        : () {
-                                                                            context.read<RsvpBloc>().add(
-                                                                                  UpdateRsvp(
-                                                                                    status: selectedStatus,
-                                                                                    eventId: event.id,
-                                                                                  ),
-                                                                                );
-                                                                          },
-                                                                    child:  isUpdating
-                                                                        ? const CircularProgressIndicator()
-                                                                        :  Text('Save Changes',
-                                                                        style: TextStyle(
-                                                                          color: colors.surface
-                                                                    ),),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                  ),
+                                                                  child: RadioListTile<RsvpStatus>(
+                                                                    value: RsvpStatus.going,
+                                                                    title: const Text(
+                                                                      'Going',
+                                                                    ),
+                                                                    subtitle: const Text(
+                                                                      'I plan to attend.',
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                                SizedBox(
-                                                                  height: 5,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: double
-                                                                      .infinity,
-                                                                  child: OutlinedButton(
-                                                                    style: FilledButton.styleFrom(
-                                                                      foregroundColor: colors.error,
-                                                                      shape: RoundedRectangleBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(8,),
-                                                                      ),
-                                                                      side: BorderSide(
-                                                                        color: colors.error,
-                                                                        width: 1.5,),
+                                                                Container(
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border.all(
+                                                                      color: textSecondary.withValues(alpha: 0.3),
                                                                     ),
-                                                                    onPressed: () {
-                                                                      showUnregisterDialog(
-                                                                        context,
-                                                                      );
-                                                                    },
-                                                                    child: Text(
-                                                                      'Cancel Registration',
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                  ),
+                                                                  child: RadioListTile<RsvpStatus>(
+                                                                    value: RsvpStatus.maybe,
+                                                                    title: const Text(
+                                                                      'Maybe',
+                                                                    ),
+                                                                    subtitle: const Text(
+                                                                      "I'm still deciding.",
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Container(
+                                                                  decoration: BoxDecoration(
+                                                                    border: Border.all(
+                                                                      color: textSecondary.withValues(alpha: 0.3),
+                                                                    ),
+                                                                    borderRadius: BorderRadius.circular(12),
+                                                                  ),
+                                                                  child: RadioListTile<RsvpStatus>(
+                                                                    value: RsvpStatus.not_going,
+                                                                    title: const Text(
+                                                                      'Not going',
+                                                                    ),
+                                                                    subtitle: const Text(
+                                                                      "I won't be attending.",
                                                                     ),
                                                                   ),
                                                                 ),
                                                               ],
-                                                            );
-                                                          },
-                                                        ),
-                                                      ],
+                                                            ),
+                                                          ),
+                                                          SizedBox(height: 10),
+                                                          BlocConsumer<RsvpBloc, RsvpState>(
+                                                            listener: (context, state) {
+                                                              if (state is RsvpOperationSuccess) {
+                                                                Navigator.pop(context,);
+                                                              }
+                                                            },
+                                                            builder: (context, state) {
+                                                              final isUpdating = state is RsvpLoading;
+                                                              return Column(
+                                                                children: [
+                                                                  SizedBox(
+                                                                    width: double.infinity,
+                                                                    child: FilledButton(
+                                                                      style: OutlinedButton.styleFrom(
+                                                                        backgroundColor: isUpdating ? colors.surface : colors.primary,
+                                                                        shape: RoundedRectangleBorder(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8),
+                                                                        ),
+                                                                      ),
+                                                                      onPressed:
+                                                                          selectedStatus == currentRsvp.status || isUpdating
+                                                                          ? null
+                                                                          : () {
+                                                                              context.read<RsvpBloc>().add(
+                                                                                    UpdateRsvp(
+                                                                                      status: selectedStatus,
+                                                                                      eventId: event.id,
+                                                                                    ),
+                                                                                  );
+                                                                            },
+                                                                      child:  isUpdating
+                                                                          ? const CircularProgressIndicator()
+                                                                          :  Text('Save Changes',
+                                                                          style: TextStyle(
+                                                                            color: colors.surface
+                                                                      ),),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height: 5,
+                                                                  ),
+                                                                  SizedBox(
+                                                                    width: double
+                                                                        .infinity,
+                                                                    child: OutlinedButton(
+                                                                      style: FilledButton.styleFrom(
+                                                                        foregroundColor: colors.error,
+                                                                        shape: RoundedRectangleBorder(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(8,),
+                                                                        ),
+                                                                        side: BorderSide(
+                                                                          color: colors.error,
+                                                                          width: 1.5,),
+                                                                      ),
+                                                                      onPressed: () {
+                                                                        showUnregisterDialog(
+                                                                          context,
+                                                                        );
+                                                                      },
+                                                                      child: Text(
+                                                                        'Cancel Registration',
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  } else {
-                                    context.read<RsvpBloc>().add(
-                                      CreateRsvp(
-                                        status: selectedStatus,
-                                        eventId: event.id,
-                                      ),
-                                    );
-                                  }
-                                },
-                          child: Text(
-                            hasRsvpd
-                                ? 'Manage Registration'
-                                : isFull
-                                ? 'Event Full'
-                                : 'Register for event',
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      context.read<RsvpBloc>().add(
+                                        CreateRsvp(
+                                          status: selectedStatus,
+                                          eventId: event.id,
+                                        ),
+                                      );
+                                    }
+                                  },
+                            child: Text(
+                              hasRsvpd
+                                  ? 'Manage Registration'
+                                  : isFull
+                                  ? 'Event Full'
+                                  : 'Register for event',
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
