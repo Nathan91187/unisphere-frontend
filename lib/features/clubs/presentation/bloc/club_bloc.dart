@@ -14,7 +14,10 @@ class ClubBloc  extends Bloc<ClubEvent, ClubState>{
         final clubs = await clubRepository.getAllClubs();
         emit(ClubLoaded(clubs: clubs));
       } catch(e){
-        emit(ClubError(errorMsg: e.toString()));
+        emit(ClubError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        )
+        );
       }
     });
     on<GetClubById>((event,emit)async{
@@ -24,7 +27,10 @@ class ClubBloc  extends Bloc<ClubEvent, ClubState>{
         emit(ClubDetailsLoaded(club: club));
       }
       catch(e){
-        emit (ClubError(errorMsg: e.toString()));
+        emit(ClubError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        )
+        );
       }
     });
     on<CreateClub>((event, emit) async {
@@ -52,7 +58,8 @@ class ClubBloc  extends Bloc<ClubEvent, ClubState>{
       } catch (e) {
         emit(ClubError(
           errorMsg: e.toString().replaceFirst('Exception: ', ''),
-        ));
+        )
+        );
       }
     });
     on<UpdateClub>((event, emit) async {
@@ -75,15 +82,15 @@ class ClubBloc  extends Bloc<ClubEvent, ClubState>{
           updatedClub = updatedClub.copyWith(
             imageUrl: imageUpdatedClub.imageUrl,
           );
-          print('Final image URL: ${updatedClub.imageUrl}');
         }
         emit(ClubOperationSuccess(
             club: updatedClub,
             message: 'Club updated successfully'));
       } catch (e) {
         emit(ClubError(
-          errorMsg: e.toString(),
-        ));
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        )
+        );
       }
     });
     on<DeleteClub>((event,emit)async{
@@ -96,7 +103,10 @@ class ClubBloc  extends Bloc<ClubEvent, ClubState>{
         );
       }
       catch(e){
-        emit (ClubError(errorMsg: e.toString()));
+        emit(ClubError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        )
+        );
       }
     });
   }
