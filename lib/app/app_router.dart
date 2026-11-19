@@ -15,6 +15,7 @@ import 'package:uni_sphere/features/profile/presentation/pages/edit_profile_page
 import 'package:uni_sphere/features/profile/presentation/pages/profile_page.dart';
 
 import '../features/clubs/presentation/pages/club_details_page.dart';
+import '../features/clubs/presentation/pages/club_members_page.dart';
 import '../features/events/domain/entities/event.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final appRouter = GoRouter(
@@ -167,7 +168,17 @@ final appRouter = GoRouter(
             profileUser: extra,
           );
         }
-        )
+        ),
+    GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/club-members',
+        builder: (context,state){
+          final extra = state.extra as Map<String,dynamic>;
+          return ClubMembersPage(
+              clubId: extra['clubId'] as int,
+              clubName: extra['clubName'] as String);
+        }
+    )
 
   ],
 );
