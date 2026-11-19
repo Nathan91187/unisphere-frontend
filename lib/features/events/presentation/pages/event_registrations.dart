@@ -71,9 +71,20 @@ class _EventRegistrationsState extends State<EventRegistrations> {
             if(state is RsvpLoaded){
               final rsvps = state.rsvps;
               if(rsvps.isEmpty){
-                return Center(
-                  child: Text(
-                    'No one has registered for this event'
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<RsvpBloc>().add(LoadRsvps(eventId: widget.eventId));
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(
+                        height: 300,
+                        child: Center(
+                          child: Text('No one has registered for this event'),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }
@@ -169,7 +180,7 @@ class _EventRegistrationsState extends State<EventRegistrations> {
                                                borderRadius: BorderRadius.circular(20),
                                              ),
                                              child: Text(
-                                               rsvps[index].status.name.toUpperCase(),
+                                                 rsvps[index].status.name == "not_going" ? "NOT GOING" : rsvps[index].status.name.toUpperCase(),
                                                style: TextStyle(
                                                  color: rsvps[index].status.name == 'going'
                                                      ? AppColors.surface
