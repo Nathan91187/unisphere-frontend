@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart';
@@ -152,6 +153,31 @@ class ClubRemoteDataSource {
       throw Exception("Unable to connect to the server");
     }
   }
+  Future<List<ClubMembershipModel>> getClubMembers(int clubId)async{
+    try {
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+      if (token == null) {
+        throw Exception('User is not authenticated');
+      }
+      final response = await get(
+        Uri.parse('$uri/$clubId/members'),
+        headers: {
+          'Authorization' : 'Bearer $token'
+        }
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+      final List<dynamic> body = jsonDecode(response.body);
+      return body.map((membership)=>ClubMembershipModel.fromJson(membership)).toList();
+    }on http.ClientException catch (e) {
+      throw Exception(unableToConnect);
+    }
+    on TimeoutException {
+      throw Exception("Unable to connect to the server");
+    }
+  }
   Future<void> leaveClub(int clubId) async{
     try{
       final token = await FirebaseAuth.instance.currentUser?.getIdToken();
@@ -225,5 +251,46 @@ class ClubRemoteDataSource {
         throw Exception("Unable to connect to the server");
       }
     }
-    
+  Future<ClubModel> updateClubImage(int clubId, File image) async {
+    try {
+      final token = await FirebaseAuth.instance.currentUser
+          ?.getIdToken()
+          .timeout(const Duration(seconds: 15));
+
+      if (token == null) {
+        throw Exception('user is not authenticated');
+      }
+
+      final request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('$uri/$clubId/image'),
+      );
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          image.path,
+        ),
+      );
+
+      request.headers['Authorization'] = 'Bearer $token';
+
+      final streamedResponse =
+      await request.send().timeout(const Duration(seconds: 30));
+
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      return ClubModel.fromJson(body);
+    } on http.ClientException {
+      throw Exception(unableToConnect);
+    } on TimeoutException {
+      throw Exception("Unable to connect to the server");
+    }
+  }
   }
