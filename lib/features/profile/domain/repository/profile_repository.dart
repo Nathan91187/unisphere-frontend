@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:uni_sphere/features/profile/domain/entities/profile_user.dart';
 
 abstract class ProfileRepository {
@@ -12,8 +14,8 @@ abstract class ProfileRepository {
   });
   Future<ProfileUser> updateProfile({
     required String displayName,
-    String? profileImageUrl,
     required String username
   });
   Future<void> deleteProfile();
+  Future<ProfileUser> updateProfileImage(File file);
 }
