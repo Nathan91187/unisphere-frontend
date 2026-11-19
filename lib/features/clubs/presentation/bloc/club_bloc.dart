@@ -3,6 +3,8 @@ import 'package:uni_sphere/features/clubs/domain/repositories/club_repository.da
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_event.dart';
 import 'package:uni_sphere/features/clubs/presentation/bloc/club_state.dart';
 
+import '../../domain/entities/club.dart';
+
 class ClubBloc  extends Bloc<ClubEvent, ClubState>{
   final ClubRepository clubRepository;
   ClubBloc({required this.clubRepository}) : super(ClubInitial()){
@@ -25,43 +27,63 @@ class ClubBloc  extends Bloc<ClubEvent, ClubState>{
         emit (ClubError(errorMsg: e.toString()));
       }
     });
-    on<CreateClub>((event,emit)async{
-      try{
-        emit(ClubLoading());
-        final club = await clubRepository.createClub(
-            name: event.name,
-            description: event.description,
-            category: event.category,
-            imageUrl: event.imageUrl
+    on<CreateClub>((event, emit) async {
+      emit(ClubLoading());
+
+      try {
+        Club club = await clubRepository.createClub(
+          name: event.name,
+          description: event.description,
+          category: event.category,
         );
+
+        if (event.image != null) {
+          club = await clubRepository.updateClubImage(
+            club.id,
+            event.image!,
+          );
+        }
         emit(
-            ClubOperationSuccess(
+          ClubOperationSuccess(
             club: club,
-            message: 'Club created successfully')
+            message: 'Club created successfully',
+          ),
         );
-      }
-      catch(e){
-        emit (ClubError(errorMsg: e.toString()));
+      } catch (e) {
+        emit(ClubError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        ));
       }
     });
-    on<UpdateClub>((event,emit)async{
-      try{
-        emit(ClubLoading());
-        final club = await clubRepository.updateClub(
-            clubId: event.clubId,
-            name: event.name,
-            description: event.description,
-            category: event.category,
-            imageUrl: event.imageUrl
+    on<UpdateClub>((event, emit) async {
+      emit(ClubLoading());
+
+      try {
+        Club? updatedClub;
+        updatedClub = await clubRepository.updateClub(
+          clubId: event.clubId,
+          name: event.name,
+          description: event.description,
+          category: event.category,
         );
-        emit(
-            ClubOperationSuccess(
-            club: club,
-            message: 'Club updated successfully')
-        );
-      }
-      catch(e){
-        emit (ClubError(errorMsg: e.toString()));
+
+        if (event.image != null) {
+          final imageUpdatedClub = await clubRepository.updateClubImage(
+            event.clubId,
+            event.image!,
+          );
+          updatedClub = updatedClub.copyWith(
+            imageUrl: imageUpdatedClub.imageUrl,
+          );
+          print('Final image URL: ${updatedClub.imageUrl}');
+        }
+        emit(ClubOperationSuccess(
+            club: updatedClub,
+            message: 'Club updated successfully'));
+      } catch (e) {
+        emit(ClubError(
+          errorMsg: e.toString(),
+        ));
       }
     });
     on<DeleteClub>((event,emit)async{
