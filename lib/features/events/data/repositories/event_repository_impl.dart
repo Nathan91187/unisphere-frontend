@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:uni_sphere/features/events/data/datasources/event_remote_data_source.dart';
 import 'package:uni_sphere/features/events/data/models/create_event_request.dart';
 import 'package:uni_sphere/features/events/data/models/event_model.dart';
@@ -110,6 +112,10 @@ class EventRepositoryImpl implements EventRepository{
     final rsvp = await dataSource.updateRsvp(eventId, status);
     return rsvp.toEntity();
   }
-
+  @override
+  Future<Event> updateEventImage(int eventId, File image) async {
+    final response = await dataSource.updateEventImage(eventId, image);
+    return response.toEntity();
+  }
 
 }
