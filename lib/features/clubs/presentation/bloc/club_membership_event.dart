@@ -26,3 +26,14 @@ class GetClubMembers extends ClubMembershipEvent {
 
   GetClubMembers({required this.clubId});
 }
+class UpdateMemberRole extends ClubMembershipEvent {
+  final int clubId;
+  final String targetUid;
+  final String role;
+
+  UpdateMemberRole({
+    required this.clubId,
+    required this.targetUid,
+    required this.role,
+  });
+}
