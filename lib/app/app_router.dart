@@ -87,14 +87,6 @@ final appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: '/discover',
-              builder: (context, state) => const ClubsPage(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
               path: '/profile',
               builder: (context, state) => const ProfilePage(),
             ),
