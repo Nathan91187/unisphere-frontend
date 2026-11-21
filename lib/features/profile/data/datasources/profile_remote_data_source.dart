@@ -9,7 +9,7 @@ import 'package:uni_sphere/features/profile/data/models/profile_response_model.d
 import 'package:uni_sphere/features/profile/data/models/update_profile_request.dart';
 
 class ProfileRemoteDataSource {
-  final String uri = "http://localhost:8080/users";
+  final String uri = "https://unisphere-backend-hj5x.onrender.com/users";
   final String unableToConnect =  "Unable to connect to the server";
   final httpClientException = 'Unable to connect. Please check your connection and try again.';
   Future<ProfileResponseModel> updateProfileImage(File image)async{
