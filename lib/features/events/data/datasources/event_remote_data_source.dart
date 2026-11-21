@@ -12,7 +12,7 @@ import 'package:uni_sphere/features/events/data/models/update_event_request.dart
 import 'package:uni_sphere/features/events/domain/entities/rsvp_status.dart';
 
 class EventRemoteDataSource {
-  final String uri = "http://localhost:8080/events";
+  final String uri = "https://unisphere-backend-hj5x.onrender.com/events";
   final String unableToConnect =  "Unable to connect to the server";
   final String notAuthenticated = 'Sign in or register to proceed';
   Future<EventModel> getEventById(int eventId)async{
