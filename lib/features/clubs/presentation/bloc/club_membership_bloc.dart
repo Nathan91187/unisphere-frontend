@@ -95,5 +95,25 @@ class ClubMembershipBloc extends Bloc<ClubMembershipEvent, ClubMembershipState>{
         ));
       }
     });
+    on<UpdateMemberRole>((event, emit) async {
+      try {
+        emit(ClubMembershipLoading());
+        await clubRepository.updateMemberRole(
+          event.clubId,
+          event.targetUid,
+          event.role,
+        );
+        emit(ClubMembershipOperationSuccess(
+          message: event.role == 'ORGANIZER'
+              ? 'Member promoted to organizer'
+              : 'Organizer demoted to member',
+        ));
+      } catch (e) {
+        emit(ClubMembershipError(
+          errorMsg: e.toString().replaceFirst('Exception: ', ''),
+        ));
+      }
+    });
   }
+
 }
