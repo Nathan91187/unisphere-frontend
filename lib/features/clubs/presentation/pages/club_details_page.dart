@@ -562,9 +562,15 @@ class _ClubDetailsPageState extends State<ClubDetailsPage> {
                                                 height: 110,
                                                 child: ClipRRect(
                                                   borderRadius: BorderRadius.circular(10),
-                                                  child: Image.asset(
-                                                    "assets/images/ronaldo_crying.png",
-                                                    fit: BoxFit.cover,
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadiusGeometry.circular(10),
+                                                    child: upcomingEvents[index].imageUrl != null
+                                                        ? Image.network(
+                                                      upcomingEvents[index].imageUrl!,
+                                                      fit: BoxFit.cover,
+                                                      width: double.infinity,
+                                                    )
+                                                        : const Icon(Icons.add_photo_alternate_outlined),
                                                   ),
                                                 ),
                                               ),
