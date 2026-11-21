@@ -293,4 +293,40 @@ class ClubRemoteDataSource {
       throw Exception("Unable to connect to the server");
     }
   }
+  Future<ClubMembershipModel> updateMemberRole(
+      int clubId,
+      String targetUid,
+      String role,
+      ) async {
+    try {
+      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+
+      if (token == null) {
+        throw Exception('User is not authenticated');
+      }
+
+      final response = await put(
+        Uri.parse('$uri/$clubId/memberships/$targetUid/role'),
+        headers: {
+          'Content-type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(role),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        final Map<String, dynamic> errorResponse =
+        jsonDecode(response.body);
+        throw Exception(errorResponse['message']);
+      }
+
+      final Map<String, dynamic> body = jsonDecode(response.body);
+
+      return ClubMembershipModel.fromJson(body);
+    } on http.ClientException {
+      throw Exception(unableToConnect);
+    } on TimeoutException {
+      throw Exception(unableToConnect);
+    }
+  }
   }
