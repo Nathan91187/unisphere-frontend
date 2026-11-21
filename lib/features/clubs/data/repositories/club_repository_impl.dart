@@ -90,4 +90,17 @@ class ClubRepositoryImpl implements ClubRepository{
     final response = await remoteDataSource.updateClubImage(clubId, file);
     return response.toEntity();
   }
+  @override
+  Future<ClubMembership> updateMemberRole(
+      int clubId,
+      String targetUid,
+      String role,
+      ) async {
+    final response = await remoteDataSource.updateMemberRole(
+      clubId,
+      targetUid,
+      role,
+    );
+    return response.toEntity();
+  }
 }
