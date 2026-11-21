@@ -11,7 +11,7 @@ import 'package:uni_sphere/features/clubs/data/models/create_club_request.dart';
 import 'package:uni_sphere/features/clubs/data/models/update_club_request.dart';
 
 class ClubRemoteDataSource {
-  final uri = "http://localhost:8080/clubs";
+  final uri = "https://unisphere-backend-hj5x.onrender.com/clubs";
   final String unableToConnect =  "Unable to connect to the server";
   Future<List<ClubModel>> getAllClubs() async{
     try {
