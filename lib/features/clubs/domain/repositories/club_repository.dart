@@ -25,5 +25,10 @@ abstract class ClubRepository {
   Future<bool> checkLeaveEligibility({required int clubId});
   Future<List<ClubMembership>> getClubMembers({required int clubId});
   Future<Club> updateClubImage(int clubId, File file);
+  Future<ClubMembership> updateMemberRole(
+      int clubId,
+      String targetUid,
+      String role,
+      );
 }
 
