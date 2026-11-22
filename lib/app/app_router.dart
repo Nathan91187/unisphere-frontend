@@ -47,10 +47,6 @@ final appRouter = GoRouter(
                   label: 'Clubs',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.explore_outlined),
-                  label: 'Discover',
-                ),
-                NavigationDestination(
                   icon: Icon(Icons.person_outline),
                   label: 'Profile',
                 ),
